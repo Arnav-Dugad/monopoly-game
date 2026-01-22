@@ -3,135 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Business India: Ultimate v3.5 (Final Polish)</title>
+    <title>Business India: Ultimate v3.9 (Stable)</title>
     <style>
         :root {
             --board-bg: #e8f5e9;
-            --center-bg: #f8fcfd;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --center-bg: #ffffff;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             --brown: #8d6e63; --lightblue: #81d4fa; --pink: #f48fb1; --orange: #ffcc80;
             --red: #ef5350; --yellow: #fff59d; --green: #66bb6a; --darkblue: #5c6bc0;
+            --glass: rgba(255, 255, 255, 0.95);
         }
 
         body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: radial-gradient(circle at center, #37474f 0%, #263238 100%);
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            width: 100vw;
-            color: #333; 
-            overflow: hidden; 
-            user-select: none;
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: radial-gradient(circle at center, #1a237e 0%, #000000 100%);
+            margin: 0; display: flex; justify-content: center; align-items: center; 
+            height: 100vh; width: 100vw; color: #333; overflow: hidden; user-select: none;
         }
         
         #game-container { 
-            display: flex; 
-            flex-direction: row;
-            gap: 2vmin; 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 2vmin; 
-            border-radius: 1.5vmin; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            height: 95vh;
-            width: 95vw;
-            box-sizing: border-box;
-            backdrop-filter: blur(10px);
+            display: flex; flex-direction: row; gap: 2vmin; 
+            background: var(--glass); padding: 2vmin; border-radius: 2vmin; 
+            box-shadow: var(--shadow); height: 96vh; width: 96vw; 
+            box-sizing: border-box; backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 900px) {
             #game-container { flex-direction: column; align-items: center; }
             #controls { width: 100% !important; height: 35% !important; flex-direction: row !important; flex-wrap: wrap; }
             #log-box { display: none; }
             #board { width: 90vmin !important; height: 90vmin !important; }
         }
 
+        /* --- TOASTS --- */
+        #toast-container { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 1vmin; z-index: 6000; pointer-events: none; }
+        .toast { background: rgba(0,0,0,0.85); color: white; padding: 1.5vmin 3vmin; border-radius: 5vmin; font-size: 1.8vmin; font-weight: 500; animation: fadeDown 0.4s ease-out; border-left: 0.8vmin solid #4caf50; backdrop-filter: blur(4px); }
+        .toast.error { border-left-color: #f44336; }
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- STATUS BAR --- */
+        #status-bar {
+            background: #eceff1; color: #455a64; padding: 1vmin; margin-bottom: 1vmin;
+            border-radius: 0.5vmin; font-size: 1.3vmin; font-weight: bold; text-align: center;
+            border-left: 0.5vmin solid #607d8b; transition: all 0.3s;
+        }
+
         /* --- BOARD --- */
         #board { 
-            display: grid; 
-            grid-template-columns: repeat(11, 1fr); 
-            grid-template-rows: repeat(11, 1fr); 
-            gap: 1px; 
-            background-color: #455a64; 
-            border: 0.5vmin solid #455a64; 
-            width: 85vh; 
-            height: 85vh; 
-            flex-shrink: 0;
-            border-radius: 0.5vmin;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr); 
+            gap: 2px; background-color: #37474f; border: 0.5vmin solid #37474f; 
+            width: 88vh; height: 88vh; flex-shrink: 0; border-radius: 1vmin;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
         .space { 
-            background-color: var(--board-bg); 
-            font-size: 0.8vmin; 
-            text-align: center; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            position: relative; 
-            overflow: hidden; 
-            cursor: pointer;
-            transition: filter 0.2s;
+            background-color: var(--board-bg); font-size: 0.9vmin; text-align: center; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            position: relative; overflow: hidden; cursor: help; transition: filter 0.2s;
         }
-
         .space:hover { filter: brightness(0.95); }
 
-        .color-bar { height: 20%; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 1px; }
-        .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1.1; font-size: 0.75vmin; color: #37474f; }
-        .space-price { padding-bottom: 0.5vmin; font-weight: 600; font-size: 0.7vmin; color: #78909c; }
+        .color-bar { height: 22%; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 1px; }
+        .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1.1; font-size: 0.8vmin; color: #263238; }
+        .space-price { padding-bottom: 0.5vmin; font-weight: 600; font-size: 0.8vmin; color: #546e7a; }
         
-        .house-icon { width: 0.8vmin; height: 0.8vmin; background: #2e7d32; border: 0.1vmin solid white; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        .hotel-icon { width: 1vmin; height: 1vmin; background: #c62828; border: 0.1vmin solid white; display: inline-block; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .house-icon { width: 0.8vmin; height: 0.8vmin; background: #2e7d32; border: 1px solid white; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .hotel-icon { width: 1.2vmin; height: 1.2vmin; background: #c62828; border: 1px solid white; display: inline-block; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         .center-space { 
             grid-column: 2 / span 9; grid-row: 2 / span 9; 
-            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #eceff1 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             position: relative; text-align: center; 
         }
 
         /* --- CONTROLS --- */
-        #controls { width: 25vw; display: flex; flex-direction: column; gap: 1vmin; height: 85vh; }
+        #controls { width: 25vw; display: flex; flex-direction: column; gap: 1vmin; height: 88vh; }
         
         .player-card { 
-            background: #fff; 
-            padding: 1.2vmin; 
-            border-radius: 0.8vmin; 
-            border-left: 1vmin solid gray; 
-            font-size: 1.4vmin; 
-            transition: transform 0.2s, box-shadow 0.2s, opacity 0.5s; 
-            position: relative; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background: white; padding: 1.5vmin; border-radius: 1vmin; 
+            border-left: 1vmin solid gray; font-size: 1.5vmin; transition: all 0.3s; 
+            position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex; justify-content: space-between; align-items: center;
         }
         
         .active-turn { 
-            border-left-width: 1.5vmin; 
-            background: #e1f5fe; 
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); 
-            transform: scale(1.03); 
-            z-index: 10; 
+            border-left-width: 1.5vmin; background: #e3f2fd; 
+            transform: scale(1.03) translateX(1vmin); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            z-index: 10; border-right: 2px solid #2196f3;
         }
-
-        .eliminated { opacity: 0.5; filter: grayscale(100%); text-decoration: line-through; }
+        .eliminated { opacity: 0.6; filter: grayscale(100%); }
 
         button { 
-            padding: 1.5vmin; 
-            cursor: pointer; 
-            background: #37474f; 
-            color: white; 
-            border: none; 
-            border-radius: 0.6vmin; 
-            font-weight: 700; 
-            transition: 0.2s; 
-            font-size: 1.3vmin; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 1.5vmin; cursor: pointer; background: #37474f; color: white; border: none; 
+            border-radius: 0.8vmin; font-weight: 700; transition: 0.2s; font-size: 1.4vmin; 
+            text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        button:hover { background: #546e7a; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        button:hover { background: #455a64; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
         button:active { transform: translateY(0); }
         button:disabled { background: #cfd8dc; color: #90a4ae; cursor: not-allowed; transform: none; box-shadow: none; }
         
@@ -139,30 +109,23 @@
         .action-btn-group button { flex: 1; }
 
         #log-box { 
-            flex-grow: 1; background: #f5f5f5; padding: 1vmin; border-radius: 0.6vmin; 
-            overflow-y: auto; font-size: 1.1vmin; font-family: 'Consolas', monospace; 
-            border: 1px solid #e0e0e0; min-height: 10vmin; 
-            display: flex; flex-direction: column-reverse; 
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            flex-grow: 1; background: #ffffff; padding: 1vmin; border-radius: 1vmin; 
+            overflow-y: auto; font-size: 1.2vmin; font-family: 'Consolas', monospace; 
+            border: 1px solid #e0e0e0; min-height: 10vmin; display: flex; flex-direction: column-reverse; 
         }
-        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #f5f5f5; padding-bottom: 2px; }
 
         /* --- TOKENS --- */
         .token { 
-            width: 1.8vmin; height: 1.8vmin; 
-            border-radius: 50%; 
-            border: 0.25vmin solid white; 
-            position: absolute; 
-            box-shadow: 0 0.5vmin 1vmin rgba(0,0,0,0.4); 
-            z-index: 100; 
-            transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            width: 2vmin; height: 2vmin; border-radius: 50%; border: 0.3vmin solid white; 
+            position: absolute; box-shadow: 0 0.5vmin 1vmin rgba(0,0,0,0.5); z-index: 100; 
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
         }
 
         /* --- ANIMATIONS --- */
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-5vmin) scale(1.1); opacity: 0; } }
-        .float-text { position: absolute; right: 10px; top: -10px; font-weight: 800; font-size: 2.2vmin; pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 200; text-shadow: 0 2px 0 white; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-5vmin) scale(1.2); opacity: 0; } }
+        .float-text { position: absolute; right: 10px; top: -10px; font-weight: 800; font-size: 2.5vmin; pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 200; text-shadow: 0 2px 4px rgba(255,255,255,0.8); }
         
-        /* CARD SHAKE (Only affects player card) */
         .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; transform-origin: center; }
         @keyframes shake { 
             10%, 90% { transform: translate3d(-2px, 0, 0); } 
@@ -172,41 +135,47 @@
         }
 
         /* --- MODALS --- */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(38, 50, 56, 0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; backdrop-filter: blur(5px); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; backdrop-filter: blur(8px); }
         .modal.show { visibility: visible; opacity: 1; }
-        .modal-content { background: white; padding: 3vmin; border-radius: 1.5vmin; text-align: center; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; font-size: 1.5vmin; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .modal-content { background: white; padding: 4vmin; border-radius: 2vmin; text-align: center; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; font-size: 1.6vmin; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         
         /* --- 3D DICE --- */
-        .dice-container { display: flex; gap: 3vmin; margin: 2vmin; perspective: 800px; }
-        .die { width: 7vmin; height: 7vmin; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .face { position: absolute; width: 100%; height: 100%; background: #fff; border: 1px solid #cfd8dc; display: flex; justify-content: center; align-items: center; font-size: 3.5vmin; font-weight: bold; border-radius: 12%; box-shadow: inset 0 0 1.5vmin rgba(0,0,0,0.1); }
-        .face:nth-child(1) { transform: translateZ(3.5vmin); } .face:nth-child(6) { transform: rotateX(-90deg) translateZ(3.5vmin); }
-        .face:nth-child(2) { transform: rotateY(180deg) translateZ(3.5vmin); } .face:nth-child(5) { transform: rotateX(90deg) translateZ(3.5vmin); }
-        .face:nth-child(3) { transform: rotateY(90deg) translateZ(3.5vmin); } .face:nth-child(4) { transform: rotateY(-90deg) translateZ(3.5vmin); }
+        .dice-container { display: flex; gap: 4vmin; margin: 3vmin; perspective: 1000px; }
+        .die { width: 8vmin; height: 8vmin; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .face { position: absolute; width: 100%; height: 100%; background: #fff; border: 1px solid #cfd8dc; display: flex; justify-content: center; align-items: center; font-size: 4vmin; font-weight: bold; border-radius: 15%; box-shadow: inset 0 0 1.5vmin rgba(0,0,0,0.1); }
+        .face:nth-child(1) { transform: translateZ(4vmin); } .face:nth-child(6) { transform: rotateX(-90deg) translateZ(4vmin); }
+        .face:nth-child(2) { transform: rotateY(180deg) translateZ(4vmin); } .face:nth-child(5) { transform: rotateX(90deg) translateZ(4vmin); }
+        .face:nth-child(3) { transform: rotateY(90deg) translateZ(4vmin); } .face:nth-child(4) { transform: rotateY(-90deg) translateZ(4vmin); }
 
-        #timer-bar-container { width: 100%; height: 0.6vmin; background: #eceff1; margin-bottom: 5px; display: none; border-radius: 1vmin; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
-        #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #26a69a, #4db6ac); transition: width 1s linear; }
+        #timer-bar-container { width: 100%; height: 0.8vmin; background: #e0e0e0; margin-bottom: 8px; display: none; border-radius: 1vmin; overflow: hidden; }
+        #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); transition: width 1s linear; }
         
-        .name-input { width: 90%; padding: 1vmin; margin: 0.5vmin 0; border: 1px solid #cfd8dc; border-radius: 4px; font-family: inherit; font-size: 1.2vmin; }
+        .name-input { width: 90%; padding: 1.2vmin; margin: 0.5vmin 0; border: 1px solid #bdbdbd; border-radius: 4px; font-family: inherit; font-size: 1.4vmin; }
         
-        /* Winner Modal */
-        #winner-modal h1 { color: #f1c40f; font-size: 5vmin; text-shadow: 0 2px 0 #d35400; margin: 10px 0; }
-        #winner-icon { font-size: 10vmin; display: block; margin-bottom: 20px; animation: bounce 1s infinite alternate; }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+        /* Pause Overlay */
+        #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #pause-overlay h1 { font-size: 6vmin; margin-bottom: 2vmin; }
+        #pause-overlay button { background: #43a047; font-size: 2vmin; padding: 2vmin 4vmin; }
     </style>
 </head>
 <body>
 
-    <div id="deed-card" style="position:absolute; display:none; background:white; border:1px solid #b0bec5; z-index:5000; pointer-events:none; box-shadow:0 10px 30px rgba(0,0,0,0.2); width:18vmin; font-size:1.2vmin; text-align:center; border-radius:0.5vmin; overflow:hidden;">
-        <div id="deed-header" style="padding:1vmin; font-weight:bold; color:white;"></div>
-        <div id="deed-body" style="padding:1vmin; line-height:1.6;"></div>
+    <div id="toast-container"></div>
+
+    <div id="deed-card" style="position:absolute; display:none; background:white; border:1px solid #90a4ae; z-index:5000; pointer-events:none; box-shadow:0 15px 35px rgba(0,0,0,0.3); width:20vmin; font-size:1.3vmin; text-align:center; border-radius:1vmin; overflow:hidden;">
+        <div id="deed-header" style="padding:1.5vmin; font-weight:bold; color:white;"></div>
+        <div id="deed-body" style="padding:1.5vmin; line-height:1.6;"></div>
+    </div>
+
+    <div id="pause-overlay">
+        <h1>PAUSED</h1>
+        <button onclick="game.togglePause()">RESUME</button>
     </div>
 
     <div id="setup-modal" class="modal show">
         <div class="modal-content">
-            <h1 style="color:#37474f; margin:0; letter-spacing:-1px;">Business India</h1>
-            <p style="color:#90a4ae; letter-spacing: 1px; font-size: 1.1vmin; text-transform: uppercase; font-weight:bold;">Ultimate Edition v3.5</p>
-            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+            <h1 style="color:#263238; margin:0; font-size: 4vmin;">Business India</h1>
+            <p style="color:#78909c; letter-spacing: 1px; font-size: 1.5vmin; font-weight:bold;">ULTIMATE EDITION v3.9</p>
             <div id="resume-container" style="display:none; background:#e8f5e9; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #c8e6c9;">
                 <p style="color:#2e7d32; font-weight:bold; margin:5px 0;">Resume previous game?</p>
                 <button onclick="game.loadGame()" style="background:#43a047; width:100%;">Resume</button>
@@ -220,7 +189,7 @@
                 <br><br>
                 <label style="cursor:pointer; color:#546e7a;"><input type="checkbox" id="timer-toggle" checked> Enable 30s Timer</label>
                 <br><br>
-                <button onclick="startGame()" style="width:100%; background:#1e88e5;">Start New Game</button>
+                <button onclick="startGame()" style="width:100%; background:#1976d2;">Start New Game</button>
             </div>
         </div>
     </div>
@@ -231,10 +200,9 @@
             <div style="background:#fff3e0; padding:10px; margin:10px 0; border-radius:4px; border:1px solid #ffe0b2;">
                 <h3 id="auction-property" style="margin:0; color:#bf360c;">Property Name</h3>
             </div>
-            <h1 id="current-bid" style="color:#43a047; font-size:5vmin; margin:15px 0;">₹10</h1>
+            <h1 id="current-bid" style="color:#43a047; font-size:6vmin; margin:15px 0;">₹10</h1>
             <p style="color:#78909c;">Highest Bidder: <strong id="high-bidder" style="color:#333;">None</strong></p>
-            <hr style="border:0; border-top:1px solid #eee;">
-            <div id="auction-controls" style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:10px;"></div>
+            <div id="auction-controls" style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:20px;"></div>
         </div>
     </div>
 
@@ -264,17 +232,18 @@
 
     <div id="winner-modal" class="modal">
         <div class="modal-content">
-            <span id="winner-icon">🏆</span>
-            <h1 id="winner-name">Player 1 Wins!</h1>
+            <span style="font-size: 8vmin;">🏆</span>
+            <h1 id="winner-name" style="color:#fbc02d; text-shadow:0 2px 0 #f57f17;">Winner!</h1>
             <p>Monopoly achieved. All opponents went bankrupt.</p>
             <br>
-            <button onclick="location.reload()" style="background:#f1c40f; color:#333; padding:2vmin; font-size:2vmin;">Play Again</button>
+            <button onclick="location.reload()" style="background:#fbc02d; color:#333; padding:2vmin; font-size:2vmin;">Play Again</button>
         </div>
     </div>
 
     <div id="prop-modal" class="modal">
         <div class="modal-content">
             <h3>🏠 Your Portfolio</h3>
+            <p style="font-size:1.2vmin; color:gray;">Buy houses to increase rent. Sell for cash.</p>
             <div id="prop-list" style="text-align:left; max-height:50vh; overflow-y:auto;"></div>
             <br>
             <button onclick="document.getElementById('prop-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#546e7a">Close</button>
@@ -292,6 +261,7 @@
     <div id="game-container">
         <div id="board"></div>
         <div id="controls">
+            <div id="status-bar">Waiting to Start...</div>
             <div id="players-list"></div>
             <div id="turn-controls" style="width:100%">
                 <div id="timer-bar-container"><div id="timer-bar"></div></div>
@@ -303,9 +273,10 @@
                 </div>
             </div>
             <div class="action-btn-group">
-                <button id="manage-btn" onclick="game.openPropertyManager()" disabled style="background:#7e57c2;">Build 🏠</button>
+                <button id="manage-btn" onclick="game.openPropertyManager()" disabled style="background:#7e57c2;">Manage 🏠</button>
                 <button id="trade-btn" onclick="game.openTradeWindow()" disabled style="background:#00897b;">Trade ⇄</button>
             </div>
+            <button onclick="game.togglePause()" style="background:#607d8b; margin-top:5px; font-size:1.2vmin; padding:1vmin;">II PAUSE GAME</button>
             <div id="log-box"></div>
             <button onclick="game.clearSave()" style="background:transparent; color:#90a4ae; font-size:1vmin; margin-top:auto; font-weight:normal;">Reset Game Data</button>
         </div>
@@ -330,9 +301,12 @@ class BusinessIndia {
         this.players = []; this.currentPlayerIdx = 0;
         this.boardState = SPACES.map(() => ({ owner: null, houses: 0 }));
         this.isProcessing = false; this.diceRotation = { x: 0, y: 0 };
-        this.timer = null; this.timerEnabled = true;
-        this.consecutiveDoubles = 0;
+        this.timer = null; this.timerEnabled = true; this.timeLeft = 30;
+        this.consecutiveDoubles = 0; this.isPaused = false;
+        // User resolver
+        this.userDecisionResolve = null;
         this.renderBoardLayout();
+        document.addEventListener("visibilitychange", () => { if(document.hidden && !this.isPaused && document.getElementById('game-container').offsetParent) this.togglePause(true); });
     }
 
     init(total, bots, names, timerEnabled) {
@@ -347,12 +321,28 @@ class BusinessIndia {
         }
         this.currentPlayerIdx = 0;
         this.consecutiveDoubles = 0;
+        this.isPaused = false;
         this.renderTokens(); this.updateUI();
+        this.setStatus("Game Started!");
         this.log("Welcome to Business India!", "#1565c0");
         this.saveGame();
     }
 
-    /* --- HELPERS --- */
+    setStatus(msg) { document.getElementById('status-bar').innerText = msg; }
+    showToast(msg, type='info') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div'); t.className = `toast ${type}`; t.innerText = msg;
+        c.appendChild(t); setTimeout(() => t.remove(), 3000);
+    }
+
+    togglePause(force = false) {
+        if(!this.players.length) return;
+        if(force) this.isPaused = true; else this.isPaused = !this.isPaused;
+        document.getElementById('pause-overlay').style.display = this.isPaused ? 'flex' : 'none';
+        if(this.isPaused) clearInterval(this.timer);
+        else if(this.timerEnabled && !this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(this.timeLeft);
+    }
+
     changeMoney(player, amount) {
         player.money += amount;
         const cards = document.getElementsByClassName('player-card');
@@ -360,7 +350,6 @@ class BusinessIndia {
             const float = document.createElement('div'); float.className = 'float-text';
             float.innerText = (amount >= 0 ? "+" : "") + "₹" + amount;
             float.style.color = amount >= 0 ? "#2e7d32" : "#c62828";
-            // Random jitter to prevent perfect overlap on quick transactions
             float.style.right = (10 + Math.random()*20) + "px";
             cards[player.id].appendChild(float);
             setTimeout(() => float.remove(), 1500);
@@ -370,41 +359,40 @@ class BusinessIndia {
 
     triggerShake(playerId) {
         const cards = document.querySelectorAll('.player-card');
-        if(cards[playerId]) {
-            cards[playerId].classList.add('shake-effect');
-            setTimeout(() => cards[playerId].classList.remove('shake-effect'), 500);
-        }
+        if(cards[playerId]) { cards[playerId].classList.add('shake-effect'); setTimeout(() => cards[playerId].classList.remove('shake-effect'), 500); }
     }
     
-    /* --- TURN LOGIC --- */
-    humanRoll() { if(!this.isProcessing) { this.stopTimer(); this.startTurnLogic(); } }
+    humanRoll() { if(!this.isProcessing && !this.isPaused) { this.stopTimer(); this.startTurnLogic(); } }
     
     startTurn() {
+        if(this.isPaused) return;
         const player = this.players[this.currentPlayerIdx];
         if(player.isBankrupt) { this.endTurn(); return; }
         
         this.updateUI();
-        if(this.consecutiveDoubles === 0) this.log(`It's ${player.name}'s turn.`, "black");
+        if(this.consecutiveDoubles === 0) {
+            this.log(`It's ${player.name}'s turn.`, "black");
+            this.setStatus(`${player.name}'s Turn`);
+        }
 
-        if(!player.isBot && this.timerEnabled && !player.inJail) this.startTimer();
-        else if (player.isBot) { setTimeout(() => this.botTurn(), 800 + Math.random()*400); return; } // Random delay
+        if(!player.isBot && this.timerEnabled && !player.inJail) this.startTimer(30);
+        else if (player.isBot) { setTimeout(() => { if(!this.isPaused) this.botTurn(); }, 800 + Math.random()*400); return; } 
         
         if(player.inJail && !player.isBot) this.stopTimer();
     }
 
     async botTurn() {
+        if(this.isPaused) { setTimeout(()=>this.botTurn(), 500); return; }
         const p = this.players[this.currentPlayerIdx];
-        if(!p.inJail && p.money > 800) this.botAttemptBuild(p);
+        if(p.money < 100) this.botEmergencySell(p);
+        else if(!p.inJail && p.money > 800) this.botAttemptBuild(p);
+        this.setStatus(`${p.name} is rolling...`);
         this.startTurnLogic();
     }
 
     botAttemptBuild(p) {
         const groups = {};
-        p.properties.forEach(idx => {
-            const g = SPACES[idx].group;
-            if(g && SPACES[idx].type==='property') { if(!groups[g]) groups[g]=[]; groups[g].push(idx); }
-        });
-        
+        p.properties.forEach(idx => { const g = SPACES[idx].group; if(g && SPACES[idx].type==='property') { if(!groups[g]) groups[g]=[]; groups[g].push(idx); } });
         Object.keys(groups).forEach(g => {
             const limit = ['brown','darkblue'].includes(g) ? 2 : 3;
             if(groups[g].length === limit) {
@@ -421,6 +409,17 @@ class BusinessIndia {
         });
     }
 
+    botEmergencySell(p) {
+        p.properties.forEach(idx => {
+            if(this.boardState[idx].houses > 0 && p.money < 200) {
+                this.boardState[idx].houses--;
+                this.changeMoney(p, SPACES[idx].housePrice / 2);
+                this.updateSpaceVisuals(idx, p.color, this.boardState[idx].houses);
+                this.log(`${p.name} sold house.`, "red");
+            }
+        });
+    }
+
     async startTurnLogic() {
         this.isProcessing = true;
         const player = this.players[this.currentPlayerIdx];
@@ -433,8 +432,7 @@ class BusinessIndia {
         } else await this.rollAndMove(player);
     }
 
-    /* --- JAIL --- */
-    humanJailAction(action) { if(!this.isProcessing) this.handleJailDecision(this.players[this.currentPlayerIdx], action); }
+    humanJailAction(action) { if(!this.isProcessing && !this.isPaused) this.handleJailDecision(this.players[this.currentPlayerIdx], action); }
 
     async handleJailDecision(player, action) {
         this.isProcessing = true;
@@ -463,7 +461,6 @@ class BusinessIndia {
         }
     }
 
-    /* --- MOVEMENT --- */
     async rollAndMove(player) {
         const d1 = Math.ceil(Math.random()*6); const d2 = Math.ceil(Math.random()*6);
         await this.animateDice(d1, d2);
@@ -513,12 +510,16 @@ class BusinessIndia {
             await this.drawCard(player);
         }
         else if((space.type === 'property' || space.type === 'station' || space.type === 'utility') && prop.owner === null) {
+            // FIX: Using await with manual promise resolution for humans
             await this.offerProperty(player, space);
         }
         else if(prop.owner !== null && prop.owner !== player.id) {
             const owner = this.players[prop.owner];
             let rent = 0;
-            if(space.type === 'property') rent = space.rent[prop.houses];
+            if(space.type === 'property') {
+                rent = space.rent[prop.houses];
+                if(prop.houses === 0 && this.hasMonopoly(owner, space.group)) rent *= 2;
+            }
             else if(space.type === 'station') {
                 const count = owner.properties.filter(id => SPACES[id].type === 'station').length;
                 rent = 25 * Math.pow(2, count-1);
@@ -526,42 +527,54 @@ class BusinessIndia {
             
             this.changeMoney(player, -rent); this.changeMoney(owner, rent);
             this.log(`Paid ₹${rent} rent to ${owner.name}`, "#d32f2f");
+            await new Promise(r => setTimeout(r, 1500)); // Pause to see rent effect
         }
         else if(space.type === 'tax') {
             this.changeMoney(player, -space.price);
             this.log(`Paid ${space.name}: ₹${space.price}`, "#d32f2f");
+            await new Promise(r => setTimeout(r, 1000));
         }
         
         this.checkBankruptcy(player);
-        if(!this.isProcessing) this.endTurn(isDoubles && !player.isBankrupt && !player.inJail);
+        this.endTurn(isDoubles && !player.isBankrupt && !player.inJail);
     }
 
-    /* --- BUY / AUCTION --- */
-    async offerProperty(player, space) {
-        const area = document.getElementById('action-area');
-        area.innerHTML = '';
-        if(player.isBot) {
-            if(player.money > space.price + 150) this.buy(player, space);
-            else { this.log(`${player.name} passed. Auction!`, "gray"); await this.startAuction(space); }
-            return;
-        } else {
-            this.isProcessing = true;
-            const canAfford = player.money >= space.price;
+    hasMonopoly(player, group) {
+        if(!group) return false;
+        const total = SPACES.filter(s => s.group === group).length;
+        const owned = player.properties.filter(idx => SPACES[idx].group === group).length;
+        return total === owned;
+    }
+
+    /* --- BUY / AUCTION (PROMISE BASED) --- */
+    offerProperty(player, space) {
+        return new Promise(resolve => {
+            const area = document.getElementById('action-area');
+            area.innerHTML = '';
             
-            const btnBuy = document.createElement('button'); 
-            btnBuy.innerHTML = `Buy ₹${space.price}`; 
-            btnBuy.style.background = canAfford ? "#43a047" : "#cfd8dc";
-            if(!canAfford) btnBuy.disabled = true;
-            btnBuy.onclick = () => { this.buy(player, space); };
+            if(player.isBot) {
+                setTimeout(() => {
+                    if(player.money > space.price + 150) this.buy(player, space);
+                    else { this.log(`${player.name} passed. Auction!`, "gray"); this.startAuction(space).then(resolve); return; }
+                    resolve();
+                }, 1000);
+            } else {
+                this.setStatus("Choose Action...");
+                const canAfford = player.money >= space.price;
+                const btnBuy = document.createElement('button'); 
+                btnBuy.innerHTML = `Buy ₹${space.price}`; 
+                btnBuy.style.background = canAfford ? "#43a047" : "#cfd8dc";
+                if(!canAfford) btnBuy.disabled = true;
+                btnBuy.onclick = () => { this.buy(player, space); area.innerHTML=''; resolve(); };
 
-            const btnPass = document.createElement('button'); 
-            btnPass.innerText = "Auction"; 
-            btnPass.style.background = "#e53935";
-            btnPass.onclick = async () => { area.innerHTML=''; await this.startAuction(space); };
+                const btnPass = document.createElement('button'); 
+                btnPass.innerText = "Auction"; 
+                btnPass.style.background = "#e53935";
+                btnPass.onclick = () => { area.innerHTML=''; this.startAuction(space).then(resolve); };
 
-            area.appendChild(btnBuy); area.appendChild(btnPass);
-            return new Promise(() => {}); 
-        }
+                area.appendChild(btnBuy); area.appendChild(btnPass);
+            }
+        });
     }
 
     buy(player, space) {
@@ -571,9 +584,6 @@ class BusinessIndia {
         this.log(`${player.name} bought ${space.name}`, "#2e7d32");
         this.updateSpaceVisuals(player.position, player.color, 0);
         this.updateUI();
-        document.getElementById('action-area').innerHTML = '';
-        this.checkBankruptcy(player);
-        this.endTurn(this.consecutiveDoubles > 0);
     }
 
     startAuction(space) {
@@ -600,12 +610,12 @@ class BusinessIndia {
                          highBidder.properties.push(this.players[this.currentPlayerIdx].position);
                          this.boardState[this.players[this.currentPlayerIdx].position].owner = highBidder.id;
                          this.log(`${highBidder.name} won auction (₹${currentBid})`, "#2e7d32");
+                         this.showToast(`${highBidder.name} won ${space.name}`);
                          this.updateSpaceVisuals(this.players[this.currentPlayerIdx].position, highBidder.color, 0);
                          this.updateUI();
                      } else this.log("Auction cancelled.", "gray");
                      
                      modal.classList.remove('show');
-                     this.endTurn(this.consecutiveDoubles > 0);
                      resolve();
                      return;
                 }
@@ -622,9 +632,7 @@ class BusinessIndia {
                             if(!modal.classList.contains('show')) return;
                             if(passed.includes(p.id) || highBidder === p) return;
                             
-                            // Smarter Bot Auction Logic
                             let val = space.price;
-                            // Willing to pay double if it completes a set
                             if(space.group && p.properties.some(x => SPACES[x].group === space.group)) val *= 2.5; 
                             
                             if(p.money > currentBid + 50 && currentBid < val) bid(p);
@@ -679,20 +687,24 @@ class BusinessIndia {
 
     checkBankruptcy(p) {
         if(p.money < 0 && !p.isBankrupt) {
-            p.isBankrupt = true;
-            this.log(`${p.name} WENT BANKRUPT!`, "#c62828");
-            this.boardState.forEach((s, idx) => { 
-                if(s.owner === p.id) { 
-                    s.owner = null; s.houses = 0; 
-                    this.updateSpaceVisuals(idx, 'transparent', 0);
-                } 
-            });
-            this.renderTokens();
-            this.updateUI();
+            this.botEmergencySell(p);
+            if(p.money < 0) {
+                p.isBankrupt = true;
+                this.log(`${p.name} WENT BANKRUPT!`, "#c62828");
+                this.showToast(`${p.name} Bankrupt!`, 'error');
+                this.boardState.forEach((s, idx) => { 
+                    if(s.owner === p.id) { 
+                        s.owner = null; s.houses = 0; 
+                        this.updateSpaceVisuals(idx, 'transparent', 0);
+                    } 
+                });
+                this.renderTokens();
+                this.updateUI();
+            }
         }
     }
 
-    /* --- CARDS --- */
+    /* --- CARDS & UI --- */
     async drawCard(player) {
         const card = CARDS[Math.floor(Math.random() * CARDS.length)];
         const modal = document.getElementById('card-modal');
@@ -707,6 +719,7 @@ class BusinessIndia {
              else if(card.action === 'jail') await this.goToJail(player);
              else if(card.action === 'keep') player.outOfJailCards++;
              else if(card.action === 'back') { player.position -= card.amount; this.renderTokens(); }
+             // Only end turn logic for non-movement cards (movement handled by handleSpace chain)
              if(!['move','jail','back'].includes(card.action)) this.endTurn(this.consecutiveDoubles > 0);
         }
 
@@ -717,7 +730,7 @@ class BusinessIndia {
     /* --- VISUALS --- */
     renderBoardLayout() {
         const b = document.getElementById('board'); b.innerHTML = '';
-        b.innerHTML += `<div class="center-space"><h2 style="color:#b0bec5; font-size:3vmin; letter-spacing:2px; margin-bottom:2vmin;">BUSINESS INDIA</h2><div class="dice-container"><div id="die1" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div><div id="die2" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div></div><div id="action-area" class="action-btn-group" style="min-height:5vmin; margin-top:2vmin;"></div></div>`;
+        b.innerHTML += `<div class="center-space"><h2 style="color:#78909c; font-size:3vmin; letter-spacing:2px; margin-bottom:2vmin;">BUSINESS INDIA</h2><div class="dice-container"><div id="die1" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div><div id="die2" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div></div><div id="action-area" class="action-btn-group" style="min-height:5vmin; margin-top:2vmin;"></div></div>`;
         const map = (i) => { if(i<=10)return{r:11,c:11-i}; if(i<=20)return{r:11-(i-10),c:1}; if(i<=30)return{r:1,c:1+(i-20)}; return{r:1+(i-30),c:11}; };
         SPACES.forEach((s, i) => {
             const e = document.createElement('div'); e.className = 'space'; e.id = `space-${i}`;
@@ -739,8 +752,7 @@ class BusinessIndia {
             const el = document.getElementById(`space-${pos}`);
             list.forEach((p, i) => {
                 const t = document.createElement('div'); t.className = 'token'; t.style.backgroundColor = p.color;
-                const offsetX = (i % 2) * 20 + 20;
-                const offsetY = Math.floor(i / 2) * 20 + 50;
+                const offsetX = 10 + (i%2) * 25; const offsetY = 50 + Math.floor(i/2) * 20;
                 t.style.left = `${offsetX}%`; t.style.top = `${offsetY}%`;
                 el.appendChild(t);
             });
@@ -759,7 +771,7 @@ class BusinessIndia {
             const d = document.createElement('div'); d.className = `player-card ${i===this.currentPlayerIdx ? 'active-turn' : ''} ${p.isBankrupt ? 'eliminated' : ''}`; d.style.borderLeftColor = p.color;
             d.innerHTML = `<div><b>${p.name}</b></div><div>💰 ₹${p.money}</div>${p.inJail?'<div style="color:#d32f2f; font-weight:bold;">IN JAIL</div>':''}`; l.appendChild(d);
         });
-        const p = this.players[this.currentPlayerIdx]; const myTurn = !p.isBot && !this.isProcessing && !p.isBankrupt;
+        const p = this.players[this.currentPlayerIdx]; const myTurn = !p.isBot && !this.isProcessing && !p.isBankrupt && !this.isPaused;
         document.getElementById('roll-btn').disabled = !myTurn || p.inJail;
         document.getElementById('jail-controls').style.display = (p.inJail) ? 'flex' : 'none';
         document.getElementById('manage-btn').disabled = !myTurn; document.getElementById('trade-btn').disabled = !myTurn;
@@ -771,12 +783,16 @@ class BusinessIndia {
         document.getElementById('deed-header').style.backgroundColor = COLORS[s.group]||'black'; document.getElementById('deed-header').innerText = s.name;
         document.getElementById('deed-body').innerHTML = `Price: ₹${s.price}<br>Rent: ₹${Array.isArray(s.rent)?s.rent[0]:100}`;
     }
-    startTimer() { this.stopTimer(); const bar = document.getElementById('timer-bar'); document.getElementById('timer-bar-container').style.display = 'block'; bar.style.width = '100%'; let t = 30; this.timer = setInterval(() => { t--; bar.style.width = (t/30 * 100) + '%'; if(t <= 0) { this.stopTimer(); this.startTurnLogic(); } }, 1000); }
+    startTimer(duration) { 
+        this.stopTimer(); this.timeLeft = duration;
+        const bar = document.getElementById('timer-bar'); document.getElementById('timer-bar-container').style.display = 'block'; bar.style.width = '100%'; 
+        this.timer = setInterval(() => { if(this.isPaused) return; this.timeLeft--; bar.style.width = (this.timeLeft/30 * 100) + '%'; if(this.timeLeft <= 0) { this.stopTimer(); this.startTurnLogic(); } }, 1000); 
+    }
     stopTimer() { if(this.timer) clearInterval(this.timer); document.getElementById('timer-bar-container').style.display = 'none'; }
-    resumeTimerIfHuman() { if(!this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(); }
-    saveGame() { if(!this.isProcessing) localStorage.setItem('bizIndia_v3_5', JSON.stringify({p:this.players,c:this.currentPlayerIdx,b:this.boardState})); }
-    loadGame() { const d = JSON.parse(localStorage.getItem('bizIndia_v3_5')); if(!d) return; this.players = d.p; this.currentPlayerIdx = d.c; this.boardState = d.b; this.renderTokens(); this.boardState.forEach((s,i)=>this.updateSpaceVisuals(i,s.owner!==null?this.players[s.owner].color:'transparent',s.houses)); this.updateUI(); document.getElementById('setup-modal').classList.remove('show'); this.startTurn(); }
-    clearSave() { localStorage.removeItem('bizIndia_v3_5'); location.reload(); }
+    resumeTimerIfHuman() { if(!this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(this.timeLeft); }
+    saveGame() { if(!this.isProcessing) localStorage.setItem('bizIndia_v3_9', JSON.stringify({p:this.players,c:this.currentPlayerIdx,b:this.boardState})); }
+    loadGame() { const d = JSON.parse(localStorage.getItem('bizIndia_v3_9')); if(!d) return; this.players = d.p; this.currentPlayerIdx = d.c; this.boardState = d.b; this.renderTokens(); this.boardState.forEach((s,i)=>this.updateSpaceVisuals(i,s.owner!==null?this.players[s.owner].color:'transparent',s.houses)); this.updateUI(); document.getElementById('setup-modal').classList.remove('show'); this.startTurn(); }
+    clearSave() { localStorage.removeItem('bizIndia_v3_9'); location.reload(); }
     log(msg, color="black") { const box = document.getElementById('log-box'); const d = document.createElement('div'); d.className = 'log-entry'; d.style.color = color; d.innerText = `> ${msg}`; box.prepend(d); }
     
     openTradeWindow() { this.stopTimer(); document.getElementById('trade-modal').classList.add('show'); this.updateTradePartnerSelect(); }
@@ -790,13 +806,13 @@ class BusinessIndia {
         const tid=parseInt(document.getElementById('trade-partner-select').value); const me=this.players[this.currentPlayerIdx]; const target=this.players[tid];
         const myP=Array.from(document.querySelectorAll('.my-check:checked')).map(c=>parseInt(c.value)); const thP=Array.from(document.querySelectorAll('.their-check:checked')).map(c=>parseInt(c.value));
         const myC=parseInt(document.getElementById('my-cash-offer').value)||0; const thC=parseInt(document.getElementById('their-cash-offer').value)||0;
-        if(myC>me.money||thC>target.money){alert("Funds too low");return;}
+        if(myC>me.money||thC>target.money){this.showToast("Funds too low", "error");return;}
         if(target.isBot || confirm("Accept Trade?")) {
             this.changeMoney(me,thC-myC); this.changeMoney(target,myC-thC);
             myP.forEach(i=>{me.properties=me.properties.filter(x=>x!==i);target.properties.push(i);this.boardState[i].owner=target.id;this.updateSpaceVisuals(i,target.color,this.boardState[i].houses)});
             thP.forEach(i=>{target.properties=target.properties.filter(x=>x!==i);me.properties.push(i);this.boardState[i].owner=me.id;this.updateSpaceVisuals(i,me.color,this.boardState[i].houses)});
-            this.log("Trade Complete", "green"); document.getElementById('trade-modal').classList.remove('show'); this.updateUI(); this.resumeTimerIfHuman();
-        }
+            this.log("Trade Complete", "green"); this.showToast("Trade Successful"); document.getElementById('trade-modal').classList.remove('show'); this.updateUI(); this.resumeTimerIfHuman();
+        } else { this.showToast("Trade Rejected", "error"); }
     }
     openPropertyManager() {
         this.stopTimer(); const modal=document.getElementById('prop-modal'); const list=document.getElementById('prop-list'); list.innerHTML='';
@@ -806,12 +822,18 @@ class BusinessIndia {
             const canBuild=g[k].length===(['brown','darkblue'].includes(k)?2:3);
             g[k].forEach(i=>{
                 const s=SPACES[i]; const row=document.createElement('div'); row.style="display:flex; justify-content:space-between; margin-bottom:5px; padding:5px; background:#f5f5f5; border-radius:4px;";
+                const h = this.boardState[i].houses;
                 row.innerHTML=`<span><span style="color:${COLORS[k]}">■</span> ${s.name}</span>`;
-                if(canBuild && this.boardState[i].houses<5) {
+                if(canBuild && h<5) {
                     const btn=document.createElement('button'); btn.innerText=`Build (${s.housePrice})`; btn.style.fontSize="10px"; btn.style.padding="4px";
                     btn.onclick=()=>{if(p.money>=s.housePrice){this.changeMoney(p,-s.housePrice);this.boardState[i].houses++;this.updateSpaceVisuals(i,p.color,this.boardState[i].houses);this.openPropertyManager();}};
                     row.appendChild(btn);
-                } else if(!canBuild) row.innerHTML+=`<small style="color:#aaa">Set Incomplete</small>`;
+                } 
+                if(h > 0) {
+                    const sellBtn=document.createElement('button'); sellBtn.innerText=`Sell (-${s.housePrice/2})`; sellBtn.style.fontSize="10px"; sellBtn.style.padding="4px"; sellBtn.style.background="#ef5350"; sellBtn.style.marginLeft="5px";
+                    sellBtn.onclick=()=>{this.changeMoney(p,s.housePrice/2);this.boardState[i].houses--;this.updateSpaceVisuals(i,p.color,this.boardState[i].houses);this.openPropertyManager();};
+                    row.appendChild(sellBtn);
+                }
                 list.appendChild(row);
             });
         });
@@ -820,7 +842,7 @@ class BusinessIndia {
 }
 
 const game = new BusinessIndia();
-window.onload = () => { if(localStorage.getItem('bizIndia_v3_5')) document.getElementById('resume-container').style.display='block'; updateNameInputs(); }
+window.onload = () => { if(localStorage.getItem('bizIndia_v3_9')) document.getElementById('resume-container').style.display='block'; updateNameInputs(); }
 function updateNameInputs() { const t=parseInt(document.getElementById('total-players').value); const c=document.getElementById('name-inputs-container'); c.innerHTML=''; for(let i=0;i<t;i++) { const inp=document.createElement('input'); inp.className='name-input'; inp.placeholder=`Player ${i+1} Name`; inp.id=`pname-${i}`; c.appendChild(inp); } }
 function startGame() { const t=parseInt(document.getElementById('total-players').value); const b=parseInt(document.getElementById('ai-count').value); const tim=document.getElementById('timer-toggle').checked; const ns=[]; for(let i=0;i<t;i++) ns.push(document.getElementById(`pname-${i}`).value); if(b>=t){alert("Need 1 Human");return;} game.clearSave(); game.init(t,b,ns,tim); document.getElementById('setup-modal').classList.remove('show'); game.startTurn(); }
 </script>
