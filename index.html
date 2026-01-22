@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Business India: Ultimate v3.9 (Stable)</title>
+    <title>Business India: Ultimate v4.2 (Anti-Freeze Core)</title>
     <style>
         :root {
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             --board-bg: #e8f5e9;
-            --center-bg: #ffffff;
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             --brown: #8d6e63; --lightblue: #81d4fa; --pink: #f48fb1; --orange: #ffcc80;
             --red: #ef5350; --yellow: #fff59d; --green: #66bb6a; --darkblue: #5c6bc0;
-            --glass: rgba(255, 255, 255, 0.95);
         }
 
         body { 
@@ -25,7 +24,7 @@
             display: flex; flex-direction: row; gap: 2vmin; 
             background: var(--glass); padding: 2vmin; border-radius: 2vmin; 
             box-shadow: var(--shadow); height: 96vh; width: 96vw; 
-            box-sizing: border-box; backdrop-filter: blur(10px);
+            box-sizing: border-box; backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.2);
         }
 
@@ -36,18 +35,18 @@
             #board { width: 90vmin !important; height: 90vmin !important; }
         }
 
-        /* --- TOASTS --- */
+        /* --- UI COMPONENTS --- */
+        #status-bar {
+            background: #263238; color: #fff; padding: 1vmin; margin-bottom: 1vmin;
+            border-radius: 0.5vmin; font-size: 1.4vmin; font-weight: bold; text-align: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); letter-spacing: 0.5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
         #toast-container { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 1vmin; z-index: 6000; pointer-events: none; }
-        .toast { background: rgba(0,0,0,0.85); color: white; padding: 1.5vmin 3vmin; border-radius: 5vmin; font-size: 1.8vmin; font-weight: 500; animation: fadeDown 0.4s ease-out; border-left: 0.8vmin solid #4caf50; backdrop-filter: blur(4px); }
+        .toast { background: rgba(0,0,0,0.9); color: white; padding: 1.5vmin 3vmin; border-radius: 5vmin; font-size: 1.8vmin; font-weight: 500; animation: fadeDown 0.4s ease-out; border-left: 0.8vmin solid #4caf50; }
         .toast.error { border-left-color: #f44336; }
         @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- STATUS BAR --- */
-        #status-bar {
-            background: #eceff1; color: #455a64; padding: 1vmin; margin-bottom: 1vmin;
-            border-radius: 0.5vmin; font-size: 1.3vmin; font-weight: bold; text-align: center;
-            border-left: 0.5vmin solid #607d8b; transition: all 0.3s;
-        }
 
         /* --- BOARD --- */
         #board { 
@@ -62,7 +61,7 @@
             display: flex; flex-direction: column; justify-content: space-between; 
             position: relative; overflow: hidden; cursor: help; transition: filter 0.2s;
         }
-        .space:hover { filter: brightness(0.95); }
+        .space:hover { filter: brightness(0.92); }
 
         .color-bar { height: 22%; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 1px; }
         .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1.1; font-size: 0.8vmin; color: #263238; }
@@ -94,7 +93,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
             z-index: 10; border-right: 2px solid #2196f3;
         }
-        .eliminated { opacity: 0.6; filter: grayscale(100%); }
+        .eliminated { opacity: 0.6; filter: grayscale(100%); text-decoration: line-through; }
 
         button { 
             padding: 1.5vmin; cursor: pointer; background: #37474f; color: white; border: none; 
@@ -156,15 +155,25 @@
         #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         #pause-overlay h1 { font-size: 6vmin; margin-bottom: 2vmin; }
         #pause-overlay button { background: #43a047; font-size: 2vmin; padding: 2vmin 4vmin; }
+
+        /* --- DEED CARD HOVER --- */
+        #deed-card {
+            position: absolute; display: none; background: white; border: 1px solid #90a4ae;
+            z-index: 5000; pointer-events: none; box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            width: 24vmin; font-size: 1.2vmin; text-align: center; border-radius: 1vmin;
+            overflow: hidden;
+        }
+        #deed-header { padding: 1.5vmin; font-weight: bold; color: white; font-size: 1.4vmin; text-transform: uppercase; }
+        #deed-body { padding: 1.5vmin; color: #333; }
     </style>
 </head>
 <body>
 
     <div id="toast-container"></div>
 
-    <div id="deed-card" style="position:absolute; display:none; background:white; border:1px solid #90a4ae; z-index:5000; pointer-events:none; box-shadow:0 15px 35px rgba(0,0,0,0.3); width:20vmin; font-size:1.3vmin; text-align:center; border-radius:1vmin; overflow:hidden;">
-        <div id="deed-header" style="padding:1.5vmin; font-weight:bold; color:white;"></div>
-        <div id="deed-body" style="padding:1.5vmin; line-height:1.6;"></div>
+    <div id="deed-card">
+        <div id="deed-header"></div>
+        <div id="deed-body"></div>
     </div>
 
     <div id="pause-overlay">
@@ -175,7 +184,7 @@
     <div id="setup-modal" class="modal show">
         <div class="modal-content">
             <h1 style="color:#263238; margin:0; font-size: 4vmin;">Business India</h1>
-            <p style="color:#78909c; letter-spacing: 1px; font-size: 1.5vmin; font-weight:bold;">ULTIMATE EDITION v3.9</p>
+            <p style="color:#78909c; letter-spacing: 1px; font-size: 1.5vmin; font-weight:bold;">ULTIMATE EDITION v4.2</p>
             <div id="resume-container" style="display:none; background:#e8f5e9; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #c8e6c9;">
                 <p style="color:#2e7d32; font-weight:bold; margin:5px 0;">Resume previous game?</p>
                 <button onclick="game.loadGame()" style="background:#43a047; width:100%;">Resume</button>
@@ -230,6 +239,18 @@
         </div>
     </div>
 
+    <div id="prop-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:5px;">🏠 Property Manager</h3>
+            <div style="background:#e8f5e9; padding:10px; border-radius:5px; margin-bottom:15px; border:1px solid #c8e6c9;">
+                <strong style="color:#2e7d32; font-size:2vmin;">Your Wallet: ₹<span id="manage-wallet">0</span></strong>
+            </div>
+            <div id="prop-list" style="text-align:left; max-height:50vh; overflow-y:auto;"></div>
+            <br>
+            <button onclick="document.getElementById('prop-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#546e7a">Close</button>
+        </div>
+    </div>
+
     <div id="winner-modal" class="modal">
         <div class="modal-content">
             <span style="font-size: 8vmin;">🏆</span>
@@ -237,16 +258,6 @@
             <p>Monopoly achieved. All opponents went bankrupt.</p>
             <br>
             <button onclick="location.reload()" style="background:#fbc02d; color:#333; padding:2vmin; font-size:2vmin;">Play Again</button>
-        </div>
-    </div>
-
-    <div id="prop-modal" class="modal">
-        <div class="modal-content">
-            <h3>🏠 Your Portfolio</h3>
-            <p style="font-size:1.2vmin; color:gray;">Buy houses to increase rent. Sell for cash.</p>
-            <div id="prop-list" style="text-align:left; max-height:50vh; overflow-y:auto;"></div>
-            <br>
-            <button onclick="document.getElementById('prop-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#546e7a">Close</button>
         </div>
     </div>
 
@@ -261,7 +272,7 @@
     <div id="game-container">
         <div id="board"></div>
         <div id="controls">
-            <div id="status-bar">Waiting to Start...</div>
+            <div id="status-bar">Initializing...</div>
             <div id="players-list"></div>
             <div id="turn-controls" style="width:100%">
                 <div id="timer-bar-container"><div id="timer-bar"></div></div>
@@ -272,6 +283,7 @@
                     <button id="jail-card-btn" onclick="game.humanJailAction('card')" disabled style="background:#43a047">Card</button>
                 </div>
             </div>
+            <div id="action-area" class="action-btn-group" style="min-height:5vmin;"></div>
             <div class="action-btn-group">
                 <button id="manage-btn" onclick="game.openPropertyManager()" disabled style="background:#7e57c2;">Manage 🏠</button>
                 <button id="trade-btn" onclick="game.openTradeWindow()" disabled style="background:#00897b;">Trade ⇄</button>
@@ -303,8 +315,8 @@ class BusinessIndia {
         this.isProcessing = false; this.diceRotation = { x: 0, y: 0 };
         this.timer = null; this.timerEnabled = true; this.timeLeft = 30;
         this.consecutiveDoubles = 0; this.isPaused = false;
-        // User resolver
-        this.userDecisionResolve = null;
+        // Watchdog prevents freezing
+        this.watchdogTimer = null;
         this.renderBoardLayout();
         document.addEventListener("visibilitychange", () => { if(document.hidden && !this.isPaused && document.getElementById('game-container').offsetParent) this.togglePause(true); });
     }
@@ -323,18 +335,30 @@ class BusinessIndia {
         this.consecutiveDoubles = 0;
         this.isPaused = false;
         this.renderTokens(); this.updateUI();
-        this.setStatus("Game Started!");
+        this.setStatus("Game Started! Player 1's Turn");
         this.log("Welcome to Business India!", "#1565c0");
         this.saveGame();
     }
 
+    /* --- WATCHDOG (ANTI-FREEZE) --- */
+    startWatchdog() {
+        if(this.watchdogTimer) clearTimeout(this.watchdogTimer);
+        // If turn takes > 10s without input (and it's a bot), force skip
+        this.watchdogTimer = setTimeout(() => {
+            if(this.isProcessing && this.players[this.currentPlayerIdx].isBot) {
+                console.warn("Watchdog: Bot stuck. Forcing turn end.");
+                this.endTurn();
+            }
+        }, 8000);
+    }
+
+    /* --- CORE HELPERS --- */
     setStatus(msg) { document.getElementById('status-bar').innerText = msg; }
     showToast(msg, type='info') {
         const c = document.getElementById('toast-container');
         const t = document.createElement('div'); t.className = `toast ${type}`; t.innerText = msg;
         c.appendChild(t); setTimeout(() => t.remove(), 3000);
     }
-
     togglePause(force = false) {
         if(!this.players.length) return;
         if(force) this.isPaused = true; else this.isPaused = !this.isPaused;
@@ -342,7 +366,6 @@ class BusinessIndia {
         if(this.isPaused) clearInterval(this.timer);
         else if(this.timerEnabled && !this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(this.timeLeft);
     }
-
     changeMoney(player, amount) {
         player.money += amount;
         const cards = document.getElementsByClassName('player-card');
@@ -355,17 +378,20 @@ class BusinessIndia {
             setTimeout(() => float.remove(), 1500);
         }
         if(amount <= -200) this.triggerShake(player.id);
+        const wallet = document.getElementById('manage-wallet');
+        if(wallet && this.players[this.currentPlayerIdx] === player) wallet.innerText = player.money;
     }
-
     triggerShake(playerId) {
         const cards = document.querySelectorAll('.player-card');
         if(cards[playerId]) { cards[playerId].classList.add('shake-effect'); setTimeout(() => cards[playerId].classList.remove('shake-effect'), 500); }
     }
-    
+
+    /* --- TURN LOOP --- */
     humanRoll() { if(!this.isProcessing && !this.isPaused) { this.stopTimer(); this.startTurnLogic(); } }
     
     startTurn() {
         if(this.isPaused) return;
+        this.isProcessing = false; // Reset lock at start of new turn
         const player = this.players[this.currentPlayerIdx];
         if(player.isBankrupt) { this.endTurn(); return; }
         
@@ -375,10 +401,13 @@ class BusinessIndia {
             this.setStatus(`${player.name}'s Turn`);
         }
 
-        if(!player.isBot && this.timerEnabled && !player.inJail) this.startTimer(30);
-        else if (player.isBot) { setTimeout(() => { if(!this.isPaused) this.botTurn(); }, 800 + Math.random()*400); return; } 
-        
-        if(player.inJail && !player.isBot) this.stopTimer();
+        if(player.isBot) {
+            this.startWatchdog();
+            setTimeout(() => { if(!this.isPaused) this.botTurn(); }, 1000);
+        } else {
+            if(this.timerEnabled && !player.inJail) this.startTimer(30);
+            if(player.inJail) this.stopTimer();
+        }
     }
 
     async botTurn() {
@@ -423,15 +452,21 @@ class BusinessIndia {
     async startTurnLogic() {
         this.isProcessing = true;
         const player = this.players[this.currentPlayerIdx];
-        if(player.inJail) {
-            if(player.isBot) {
-                if(player.outOfJailCards > 0) await this.handleJailDecision(player, 'card');
-                else if(player.money > 1000) await this.handleJailDecision(player, 'pay');
-                else await this.handleJailDecision(player, 'roll');
-            }
-        } else await this.rollAndMove(player);
+        try {
+            if(player.inJail) {
+                if(player.isBot) {
+                    if(player.outOfJailCards > 0) await this.handleJailDecision(player, 'card');
+                    else if(player.money > 1000) await this.handleJailDecision(player, 'pay');
+                    else await this.handleJailDecision(player, 'roll');
+                }
+            } else await this.rollAndMove(player);
+        } catch (error) {
+            console.error("Turn Error:", error);
+            this.endTurn(); // Failsafe
+        }
     }
 
+    /* --- JAIL --- */
     humanJailAction(action) { if(!this.isProcessing && !this.isPaused) this.handleJailDecision(this.players[this.currentPlayerIdx], action); }
 
     async handleJailDecision(player, action) {
@@ -461,6 +496,7 @@ class BusinessIndia {
         }
     }
 
+    /* --- MOVEMENT --- */
     async rollAndMove(player) {
         const d1 = Math.ceil(Math.random()*6); const d2 = Math.ceil(Math.random()*6);
         await this.animateDice(d1, d2);
@@ -510,7 +546,6 @@ class BusinessIndia {
             await this.drawCard(player);
         }
         else if((space.type === 'property' || space.type === 'station' || space.type === 'utility') && prop.owner === null) {
-            // FIX: Using await with manual promise resolution for humans
             await this.offerProperty(player, space);
         }
         else if(prop.owner !== null && prop.owner !== player.id) {
@@ -519,15 +554,14 @@ class BusinessIndia {
             if(space.type === 'property') {
                 rent = space.rent[prop.houses];
                 if(prop.houses === 0 && this.hasMonopoly(owner, space.group)) rent *= 2;
-            }
-            else if(space.type === 'station') {
+            } else if(space.type === 'station') {
                 const count = owner.properties.filter(id => SPACES[id].type === 'station').length;
                 rent = 25 * Math.pow(2, count-1);
             } else rent = 100;
             
             this.changeMoney(player, -rent); this.changeMoney(owner, rent);
             this.log(`Paid ₹${rent} rent to ${owner.name}`, "#d32f2f");
-            await new Promise(r => setTimeout(r, 1500)); // Pause to see rent effect
+            await new Promise(r => setTimeout(r, 1500)); 
         }
         else if(space.type === 'tax') {
             this.changeMoney(player, -space.price);
@@ -536,6 +570,7 @@ class BusinessIndia {
         }
         
         this.checkBankruptcy(player);
+        if(!this.isProcessing) return; // Should not happen with new logic, but safety check
         this.endTurn(isDoubles && !player.isBankrupt && !player.inJail);
     }
 
@@ -553,14 +588,18 @@ class BusinessIndia {
             area.innerHTML = '';
             
             if(player.isBot) {
-                setTimeout(() => {
+                setTimeout(async () => {
                     if(player.money > space.price + 150) this.buy(player, space);
-                    else { this.log(`${player.name} passed. Auction!`, "gray"); this.startAuction(space).then(resolve); return; }
+                    else { 
+                        this.log(`${player.name} passed. Auction!`, "gray"); 
+                        await this.startAuction(space); 
+                    }
                     resolve();
                 }, 1000);
             } else {
-                this.setStatus("Choose Action...");
+                this.setStatus("Do you want to buy this property?");
                 const canAfford = player.money >= space.price;
+                
                 const btnBuy = document.createElement('button'); 
                 btnBuy.innerHTML = `Buy ₹${space.price}`; 
                 btnBuy.style.background = canAfford ? "#43a047" : "#cfd8dc";
@@ -570,7 +609,7 @@ class BusinessIndia {
                 const btnPass = document.createElement('button'); 
                 btnPass.innerText = "Auction"; 
                 btnPass.style.background = "#e53935";
-                btnPass.onclick = () => { area.innerHTML=''; this.startAuction(space).then(resolve); };
+                btnPass.onclick = async () => { area.innerHTML=''; await this.startAuction(space); resolve(); };
 
                 area.appendChild(btnBuy); area.appendChild(btnPass);
             }
@@ -596,14 +635,14 @@ class BusinessIndia {
             let currentBid = 10;
             let highBidder = null;
             let passed = [];
-            
+            const activePlayers = this.players.filter(p=>!p.isBankrupt);
+
             const updateUI = () => {
                 currBidEl.innerText = `₹${currentBid}`;
                 highBidderEl.innerText = highBidder ? highBidder.name : "None";
                 controls.innerHTML = '';
                 
-                const activePlayers = this.players.filter(p=>!p.isBankrupt);
-
+                // End Check
                 if(passed.length >= activePlayers.length || (highBidder && passed.length >= activePlayers.length - 1)) {
                      if(highBidder) {
                          this.changeMoney(highBidder, -currentBid);
@@ -661,6 +700,7 @@ class BusinessIndia {
 
     /* --- END TURN --- */
     endTurn(goAgain = false) {
+        if(this.watchdogTimer) clearTimeout(this.watchdogTimer);
         this.isProcessing = false;
         
         const active = this.players.filter(p => !p.isBankrupt);
@@ -673,7 +713,7 @@ class BusinessIndia {
 
         this.saveGame();
         
-        if(goAgain) {
+        if(goAgain && !this.players[this.currentPlayerIdx].isBankrupt) {
             this.log(`${this.players[this.currentPlayerIdx].name} rolls again!`, "#0277bd");
             setTimeout(() => this.startTurn(), 1000);
         } else {
@@ -719,7 +759,6 @@ class BusinessIndia {
              else if(card.action === 'jail') await this.goToJail(player);
              else if(card.action === 'keep') player.outOfJailCards++;
              else if(card.action === 'back') { player.position -= card.amount; this.renderTokens(); }
-             // Only end turn logic for non-movement cards (movement handled by handleSpace chain)
              if(!['move','jail','back'].includes(card.action)) this.endTurn(this.consecutiveDoubles > 0);
         }
 
@@ -781,20 +820,28 @@ class BusinessIndia {
         const s = SPACES[idx]; if(!s.group && s.type !== 'station' && s.type !== 'utility') return;
         const c = document.getElementById('deed-card'); c.style.display = 'block'; c.style.left = (e.pageX+15)+'px'; c.style.top = (e.pageY+15)+'px';
         document.getElementById('deed-header').style.backgroundColor = COLORS[s.group]||'black'; document.getElementById('deed-header').innerText = s.name;
-        document.getElementById('deed-body').innerHTML = `Price: ₹${s.price}<br>Rent: ₹${Array.isArray(s.rent)?s.rent[0]:100}`;
+        let bodyHTML = `Price: ₹${s.price}<br>Mortgage: ₹${s.price/2}<hr style="border:0; border-top:1px solid #ccc; margin:5px 0;">`;
+        if(Array.isArray(s.rent)) { bodyHTML += `<table style="width:100%; font-size:1.1vmin; text-align:left;"><tr><td>Base Rent:</td><td>₹${s.rent[0]}</td></tr><tr><td>1 House:</td><td>₹${s.rent[1]}</td></tr><tr><td>2 Houses:</td><td>₹${s.rent[2]}</td></tr><tr><td>3 Houses:</td><td>₹${s.rent[3]}</td></tr><tr><td>4 Houses:</td><td>₹${s.rent[4]}</td></tr><tr><td style="color:#c62828;">HOTEL:</td><td style="color:#c62828;">₹${s.rent[5]}</td></tr></table><div style="margin-top:5px; font-size:1vmin; color:#546e7a;">Building Cost: ₹${s.housePrice}</div>`; } 
+        else { bodyHTML += `Base Rent: ₹${s.rent}`; }
+        document.getElementById('deed-body').innerHTML = bodyHTML;
     }
     startTimer(duration) { 
         this.stopTimer(); this.timeLeft = duration;
         const bar = document.getElementById('timer-bar'); document.getElementById('timer-bar-container').style.display = 'block'; bar.style.width = '100%'; 
-        this.timer = setInterval(() => { if(this.isPaused) return; this.timeLeft--; bar.style.width = (this.timeLeft/30 * 100) + '%'; if(this.timeLeft <= 0) { this.stopTimer(); this.startTurnLogic(); } }, 1000); 
+        this.timer = setInterval(() => { 
+            if(this.isPaused) return;
+            this.timeLeft--; bar.style.width = (this.timeLeft/30 * 100) + '%'; 
+            if(this.timeLeft <= 0) { this.stopTimer(); this.startTurnLogic(); } 
+        }, 1000); 
     }
     stopTimer() { if(this.timer) clearInterval(this.timer); document.getElementById('timer-bar-container').style.display = 'none'; }
     resumeTimerIfHuman() { if(!this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(this.timeLeft); }
-    saveGame() { if(!this.isProcessing) localStorage.setItem('bizIndia_v3_9', JSON.stringify({p:this.players,c:this.currentPlayerIdx,b:this.boardState})); }
-    loadGame() { const d = JSON.parse(localStorage.getItem('bizIndia_v3_9')); if(!d) return; this.players = d.p; this.currentPlayerIdx = d.c; this.boardState = d.b; this.renderTokens(); this.boardState.forEach((s,i)=>this.updateSpaceVisuals(i,s.owner!==null?this.players[s.owner].color:'transparent',s.houses)); this.updateUI(); document.getElementById('setup-modal').classList.remove('show'); this.startTurn(); }
-    clearSave() { localStorage.removeItem('bizIndia_v3_9'); location.reload(); }
+    saveGame() { if(!this.isProcessing) localStorage.setItem('bizIndia_v4_2', JSON.stringify({p:this.players,c:this.currentPlayerIdx,b:this.boardState})); }
+    loadGame() { const d = JSON.parse(localStorage.getItem('bizIndia_v4_2')); if(!d) return; this.players = d.p; this.currentPlayerIdx = d.c; this.boardState = d.b; this.renderTokens(); this.boardState.forEach((s,i)=>this.updateSpaceVisuals(i,s.owner!==null?this.players[s.owner].color:'transparent',s.houses)); this.updateUI(); document.getElementById('setup-modal').classList.remove('show'); this.startTurn(); }
+    clearSave() { localStorage.removeItem('bizIndia_v4_2'); location.reload(); }
     log(msg, color="black") { const box = document.getElementById('log-box'); const d = document.createElement('div'); d.className = 'log-entry'; d.style.color = color; d.innerText = `> ${msg}`; box.prepend(d); }
     
+    // Trade Logic
     openTradeWindow() { this.stopTimer(); document.getElementById('trade-modal').classList.add('show'); this.updateTradePartnerSelect(); }
     updateTradePartnerSelect() { const s = document.getElementById('trade-partner-select'); s.innerHTML=''; this.players.forEach(p=>{if(p.id!==this.currentPlayerIdx&&!p.isBankrupt){const o=document.createElement('option');o.value=p.id;o.innerText=p.name;s.appendChild(o)}}); this.updateTradeUI(); }
     updateTradeUI() {
@@ -815,8 +862,11 @@ class BusinessIndia {
         } else { this.showToast("Trade Rejected", "error"); }
     }
     openPropertyManager() {
-        this.stopTimer(); const modal=document.getElementById('prop-modal'); const list=document.getElementById('prop-list'); list.innerHTML='';
-        const p=this.players[this.currentPlayerIdx]; const g={};
+        this.stopTimer(); 
+        const p = this.players[this.currentPlayerIdx];
+        document.getElementById('manage-wallet').innerText = p.money;
+        const modal=document.getElementById('prop-modal'); const list=document.getElementById('prop-list'); list.innerHTML='';
+        const g={};
         p.properties.forEach(i=>{const s=SPACES[i];if(s.type==='property'){if(!g[s.group])g[s.group]=[];g[s.group].push(i)}});
         Object.keys(g).forEach(k=>{
             const canBuild=g[k].length===(['brown','darkblue'].includes(k)?2:3);
@@ -842,7 +892,7 @@ class BusinessIndia {
 }
 
 const game = new BusinessIndia();
-window.onload = () => { if(localStorage.getItem('bizIndia_v3_9')) document.getElementById('resume-container').style.display='block'; updateNameInputs(); }
+window.onload = () => { if(localStorage.getItem('bizIndia_v4_2')) document.getElementById('resume-container').style.display='block'; updateNameInputs(); }
 function updateNameInputs() { const t=parseInt(document.getElementById('total-players').value); const c=document.getElementById('name-inputs-container'); c.innerHTML=''; for(let i=0;i<t;i++) { const inp=document.createElement('input'); inp.className='name-input'; inp.placeholder=`Player ${i+1} Name`; inp.id=`pname-${i}`; c.appendChild(inp); } }
 function startGame() { const t=parseInt(document.getElementById('total-players').value); const b=parseInt(document.getElementById('ai-count').value); const tim=document.getElementById('timer-toggle').checked; const ns=[]; for(let i=0;i<t;i++) ns.push(document.getElementById(`pname-${i}`).value); if(b>=t){alert("Need 1 Human");return;} game.clearSave(); game.init(t,b,ns,tim); document.getElementById('setup-modal').classList.remove('show'); game.startTurn(); }
 </script>
