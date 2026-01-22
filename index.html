@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business India: Ultimate v3.5 (Final Polish)</title>
+    <style>
+        :root {
+            --board-bg: #e8f5e9;
+            --center-bg: #f8fcfd;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --brown: #8d6e63; --lightblue: #81d4fa; --pink: #f48fb1; --orange: #ffcc80;
+            --red: #ef5350; --yellow: #fff59d; --green: #66bb6a; --darkblue: #5c6bc0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: radial-gradient(circle at center, #37474f 0%, #263238 100%);
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            width: 100vw;
+            color: #333; 
+            overflow: hidden; 
+            user-select: none;
+        }
+        
+        #game-container { 
+            display: flex; 
+            flex-direction: row;
+            gap: 2vmin; 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 2vmin; 
+            border-radius: 1.5vmin; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            height: 95vh;
+            width: 95vw;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 800px) {
+            #game-container { flex-direction: column; align-items: center; }
+            #controls { width: 100% !important; height: 35% !important; flex-direction: row !important; flex-wrap: wrap; }
+            #log-box { display: none; }
+            #board { width: 90vmin !important; height: 90vmin !important; }
+        }
+
+        /* --- BOARD --- */
+        #board { 
+            display: grid; 
+            grid-template-columns: repeat(11, 1fr); 
+            grid-template-rows: repeat(11, 1fr); 
+            gap: 1px; 
+            background-color: #455a64; 
+            border: 0.5vmin solid #455a64; 
+            width: 85vh; 
+            height: 85vh; 
+            flex-shrink: 0;
+            border-radius: 0.5vmin;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .space { 
+            background-color: var(--board-bg); 
+            font-size: 0.8vmin; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            position: relative; 
+            overflow: hidden; 
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        .space:hover { filter: brightness(0.95); }
+
+        .color-bar { height: 20%; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 1px; }
+        .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1.1; font-size: 0.75vmin; color: #37474f; }
+        .space-price { padding-bottom: 0.5vmin; font-weight: 600; font-size: 0.7vmin; color: #78909c; }
+        
+        .house-icon { width: 0.8vmin; height: 0.8vmin; background: #2e7d32; border: 0.1vmin solid white; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .hotel-icon { width: 1vmin; height: 1vmin; background: #c62828; border: 0.1vmin solid white; display: inline-block; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+        .center-space { 
+            grid-column: 2 / span 9; grid-row: 2 / span 9; 
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; text-align: center; 
+        }
+
+        /* --- CONTROLS --- */
+        #controls { width: 25vw; display: flex; flex-direction: column; gap: 1vmin; height: 85vh; }
+        
+        .player-card { 
+            background: #fff; 
+            padding: 1.2vmin; 
+            border-radius: 0.8vmin; 
+            border-left: 1vmin solid gray; 
+            font-size: 1.4vmin; 
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.5s; 
+            position: relative; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .active-turn { 
+            border-left-width: 1.5vmin; 
+            background: #e1f5fe; 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1); 
+            transform: scale(1.03); 
+            z-index: 10; 
+        }
+
+        .eliminated { opacity: 0.5; filter: grayscale(100%); text-decoration: line-through; }
+
+        button { 
+            padding: 1.5vmin; 
+            cursor: pointer; 
+            background: #37474f; 
+            color: white; 
+            border: none; 
+            border-radius: 0.6vmin; 
+            font-weight: 700; 
+            transition: 0.2s; 
+            font-size: 1.3vmin; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover { background: #546e7a; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #cfd8dc; color: #90a4ae; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .action-btn-group { display: flex; gap: 1vmin; margin-top: 1vmin; justify-content: center; width: 100%; }
+        .action-btn-group button { flex: 1; }
+
+        #log-box { 
+            flex-grow: 1; background: #f5f5f5; padding: 1vmin; border-radius: 0.6vmin; 
+            overflow-y: auto; font-size: 1.1vmin; font-family: 'Consolas', monospace; 
+            border: 1px solid #e0e0e0; min-height: 10vmin; 
+            display: flex; flex-direction: column-reverse; 
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+
+        /* --- TOKENS --- */
+        .token { 
+            width: 1.8vmin; height: 1.8vmin; 
+            border-radius: 50%; 
+            border: 0.25vmin solid white; 
+            position: absolute; 
+            box-shadow: 0 0.5vmin 1vmin rgba(0,0,0,0.4); 
+            z-index: 100; 
+            transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-5vmin) scale(1.1); opacity: 0; } }
+        .float-text { position: absolute; right: 10px; top: -10px; font-weight: 800; font-size: 2.2vmin; pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 200; text-shadow: 0 2px 0 white; }
+        
+        /* CARD SHAKE (Only affects player card) */
+        .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; transform-origin: center; }
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-2px, 0, 0); } 
+            20%, 80% { transform: translate3d(4px, 0, 0); } 
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 
+            40%, 60% { transform: translate3d(6px, 0, 0); } 
+        }
+
+        /* --- MODALS --- */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(38, 50, 56, 0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; backdrop-filter: blur(5px); }
+        .modal.show { visibility: visible; opacity: 1; }
+        .modal-content { background: white; padding: 3vmin; border-radius: 1.5vmin; text-align: center; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; font-size: 1.5vmin; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        
+        /* --- 3D DICE --- */
+        .dice-container { display: flex; gap: 3vmin; margin: 2vmin; perspective: 800px; }
+        .die { width: 7vmin; height: 7vmin; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .face { position: absolute; width: 100%; height: 100%; background: #fff; border: 1px solid #cfd8dc; display: flex; justify-content: center; align-items: center; font-size: 3.5vmin; font-weight: bold; border-radius: 12%; box-shadow: inset 0 0 1.5vmin rgba(0,0,0,0.1); }
+        .face:nth-child(1) { transform: translateZ(3.5vmin); } .face:nth-child(6) { transform: rotateX(-90deg) translateZ(3.5vmin); }
+        .face:nth-child(2) { transform: rotateY(180deg) translateZ(3.5vmin); } .face:nth-child(5) { transform: rotateX(90deg) translateZ(3.5vmin); }
+        .face:nth-child(3) { transform: rotateY(90deg) translateZ(3.5vmin); } .face:nth-child(4) { transform: rotateY(-90deg) translateZ(3.5vmin); }
+
+        #timer-bar-container { width: 100%; height: 0.6vmin; background: #eceff1; margin-bottom: 5px; display: none; border-radius: 1vmin; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+        #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #26a69a, #4db6ac); transition: width 1s linear; }
+        
+        .name-input { width: 90%; padding: 1vmin; margin: 0.5vmin 0; border: 1px solid #cfd8dc; border-radius: 4px; font-family: inherit; font-size: 1.2vmin; }
+        
+        /* Winner Modal */
+        #winner-modal h1 { color: #f1c40f; font-size: 5vmin; text-shadow: 0 2px 0 #d35400; margin: 10px 0; }
+        #winner-icon { font-size: 10vmin; display: block; margin-bottom: 20px; animation: bounce 1s infinite alternate; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
+
+    <div id="deed-card" style="position:absolute; display:none; background:white; border:1px solid #b0bec5; z-index:5000; pointer-events:none; box-shadow:0 10px 30px rgba(0,0,0,0.2); width:18vmin; font-size:1.2vmin; text-align:center; border-radius:0.5vmin; overflow:hidden;">
+        <div id="deed-header" style="padding:1vmin; font-weight:bold; color:white;"></div>
+        <div id="deed-body" style="padding:1vmin; line-height:1.6;"></div>
+    </div>
+
+    <div id="setup-modal" class="modal show">
+        <div class="modal-content">
+            <h1 style="color:#37474f; margin:0; letter-spacing:-1px;">Business India</h1>
+            <p style="color:#90a4ae; letter-spacing: 1px; font-size: 1.1vmin; text-transform: uppercase; font-weight:bold;">Ultimate Edition v3.5</p>
+            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+            <div id="resume-container" style="display:none; background:#e8f5e9; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #c8e6c9;">
+                <p style="color:#2e7d32; font-weight:bold; margin:5px 0;">Resume previous game?</p>
+                <button onclick="game.loadGame()" style="background:#43a047; width:100%;">Resume</button>
+            </div>
+            <div id="new-game-form">
+                <label style="font-weight:600;">Players: <select id="total-players" onchange="updateNameInputs()" style="padding:5px; border-radius:4px;"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+                <br><br>
+                <div id="name-inputs-container"></div>
+                <br>
+                <label style="font-weight:600;">Bots: <select id="ai-count" style="padding:5px; border-radius:4px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+                <br><br>
+                <label style="cursor:pointer; color:#546e7a;"><input type="checkbox" id="timer-toggle" checked> Enable 30s Timer</label>
+                <br><br>
+                <button onclick="startGame()" style="width:100%; background:#1e88e5;">Start New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auction-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color:#e65100;">🔨 Auction</h2>
+            <div style="background:#fff3e0; padding:10px; margin:10px 0; border-radius:4px; border:1px solid #ffe0b2;">
+                <h3 id="auction-property" style="margin:0; color:#bf360c;">Property Name</h3>
+            </div>
+            <h1 id="current-bid" style="color:#43a047; font-size:5vmin; margin:15px 0;">₹10</h1>
+            <p style="color:#78909c;">Highest Bidder: <strong id="high-bidder" style="color:#333;">None</strong></p>
+            <hr style="border:0; border-top:1px solid #eee;">
+            <div id="auction-controls" style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <div id="trade-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3 style="margin-top:0;">🤝 Trade Proposal</h3>
+            <div style="margin-bottom:10px; text-align:left;">Partner: <select id="trade-partner-select" onchange="game.updateTradeUI()" style="padding:5px;"></select></div>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1; border:1px solid #eceff1; background:#fafafa; padding:8px; height:30vh; overflow-y:auto; border-radius:4px;">
+                    <strong style="color:#2e7d32;">You Give:</strong>
+                    <div id="my-props-list"></div>
+                    <div style="margin-top:5px; border-top:1px solid #ddd; padding-top:5px;">₹ <input type="number" id="my-cash-offer" value="0" style="width:60px; padding:3px;"></div>
+                </div>
+                <div style="flex:1; border:1px solid #eceff1; background:#fafafa; padding:8px; height:30vh; overflow-y:auto; border-radius:4px;">
+                    <strong style="color:#c62828;">You Get:</strong>
+                    <div id="their-props-list"></div>
+                    <div style="margin-top:5px; border-top:1px solid #ddd; padding-top:5px;">₹ <input type="number" id="their-cash-offer" value="0" style="width:60px; padding:3px;"></div>
+                </div>
+            </div>
+            <br>
+            <div class="action-btn-group">
+                <button onclick="game.proposeTrade()" style="background:#43a047">Confirm Trade</button>
+                <button onclick="document.getElementById('trade-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#e53935">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="winner-modal" class="modal">
+        <div class="modal-content">
+            <span id="winner-icon">🏆</span>
+            <h1 id="winner-name">Player 1 Wins!</h1>
+            <p>Monopoly achieved. All opponents went bankrupt.</p>
+            <br>
+            <button onclick="location.reload()" style="background:#f1c40f; color:#333; padding:2vmin; font-size:2vmin;">Play Again</button>
+        </div>
+    </div>
+
+    <div id="prop-modal" class="modal">
+        <div class="modal-content">
+            <h3>🏠 Your Portfolio</h3>
+            <div id="prop-list" style="text-align:left; max-height:50vh; overflow-y:auto;"></div>
+            <br>
+            <button onclick="document.getElementById('prop-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#546e7a">Close</button>
+        </div>
+    </div>
+
+    <div id="card-modal" class="modal">
+        <div class="modal-content" style="border-top: 1vmin solid #ffa000">
+            <h2 id="card-title">Alert</h2>
+            <p id="card-desc" style="font-size: 2vmin; margin: 3vmin 0; line-height:1.5;">...</p>
+            <button id="card-btn" style="width:50%; background:#ffa000;">Continue</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="board"></div>
+        <div id="controls">
+            <div id="players-list"></div>
+            <div id="turn-controls" style="width:100%">
+                <div id="timer-bar-container"><div id="timer-bar"></div></div>
+                <button id="roll-btn" onclick="game.humanRoll()" style="width:100%; padding:2vmin; font-size:2vmin; background:linear-gradient(135deg, #1e88e5, #1565c0);">ROLL DICE 🎲</button>
+                <div id="jail-controls" class="action-btn-group" style="display:none;">
+                    <button onclick="game.humanJailAction('roll')" style="background:#fb8c00">Doubles?</button>
+                    <button onclick="game.humanJailAction('pay')" style="background:#e53935">Pay ₹50</button>
+                    <button id="jail-card-btn" onclick="game.humanJailAction('card')" disabled style="background:#43a047">Card</button>
+                </div>
+            </div>
+            <div class="action-btn-group">
+                <button id="manage-btn" onclick="game.openPropertyManager()" disabled style="background:#7e57c2;">Build 🏠</button>
+                <button id="trade-btn" onclick="game.openTradeWindow()" disabled style="background:#00897b;">Trade ⇄</button>
+            </div>
+            <div id="log-box"></div>
+            <button onclick="game.clearSave()" style="background:transparent; color:#90a4ae; font-size:1vmin; margin-top:auto; font-weight:normal;">Reset Game Data</button>
+        </div>
+    </div>
+
+<script>
+/* --- CONFIGURATION --- */
+const SPACES = [
+    { name: "GO", type: "special", price: 0 }, { name: "Guwahati", type: "property", group: "brown", price: 60, housePrice: 50, rent: [2, 10, 30, 90, 160, 250] }, { name: "Chest", type: "chest", price: 0 }, { name: "Bhubaneswar", type: "property", group: "brown", price: 60, housePrice: 50, rent: [4, 20, 60, 180, 320, 450] }, { name: "Income Tax", type: "tax", price: 200 }, { name: "CST Station", type: "station", group: "station", price: 200 }, { name: "Jaipur", type: "property", group: "lightblue", price: 100, housePrice: 50, rent: [6, 30, 90, 270, 400, 550] }, { name: "Chance", type: "chance", price: 0 }, { name: "Agra", type: "property", group: "lightblue", price: 100, housePrice: 50, rent: [6, 30, 90, 270, 400, 550] }, { name: "Udaipur", type: "property", group: "lightblue", price: 120, housePrice: 50, rent: [8, 40, 100, 300, 450, 600] }, { name: "Jail", type: "special", price: 0 },
+    { name: "Patna", type: "property", group: "pink", price: 140, housePrice: 100, rent: [10, 50, 150, 450, 625, 750] }, { name: "Electric Co", type: "utility", group: "utility", price: 150 }, { name: "Nagpur", type: "property", group: "pink", price: 140, housePrice: 100, rent: [10, 50, 150, 450, 625, 750] }, { name: "Indore", type: "property", group: "pink", price: 160, housePrice: 100, rent: [12, 60, 180, 500, 700, 900] }, { name: "Howrah Stn", type: "station", group: "station", price: 200 }, { name: "Pune", type: "property", group: "orange", price: 180, housePrice: 100, rent: [14, 70, 200, 550, 750, 950] }, { name: "Chest", type: "chest", price: 0 }, { name: "Ahmedabad", type: "property", group: "orange", price: 180, housePrice: 100, rent: [14, 70, 200, 550, 750, 950] }, { name: "Hyderabad", type: "property", group: "orange", price: 200, housePrice: 100, rent: [16, 80, 220, 600, 800, 1000] }, { name: "Parking", type: "special", price: 0 },
+    { name: "Chennai", type: "property", group: "red", price: 220, housePrice: 150, rent: [18, 90, 250, 700, 875, 1050] }, { name: "Chance", type: "chance", price: 0 }, { name: "Kolkata", type: "property", group: "red", price: 220, housePrice: 150, rent: [18, 90, 250, 700, 875, 1050] }, { name: "Bangalore", type: "property", group: "red", price: 240, housePrice: 150, rent: [20, 100, 300, 750, 925, 1100] }, { name: "New Delhi Stn", type: "station", group: "station", price: 200 }, { name: "Goa", type: "property", group: "yellow", price: 260, housePrice: 150, rent: [22, 110, 330, 800, 975, 1150] }, { name: "Kochi", type: "property", group: "yellow", price: 260, housePrice: 150, rent: [22, 110, 330, 800, 975, 1150] }, { name: "Water Works", type: "utility", group: "utility", price: 150 }, { name: "Mysore", type: "property", group: "yellow", price: 280, housePrice: 150, rent: [24, 120, 360, 850, 1025, 1200] }, { name: "Go To Jail", type: "special", price: 0 },
+    { name: "Gurgaon", type: "property", group: "green", price: 300, housePrice: 200, rent: [26, 130, 390, 900, 1100, 1275] }, { name: "Noida", type: "property", group: "green", price: 300, housePrice: 200, rent: [26, 130, 390, 900, 1100, 1275] }, { name: "Chest", type: "chest", price: 0 }, { name: "New Delhi", type: "property", group: "green", price: 320, housePrice: 200, rent: [28, 150, 450, 1000, 1200, 1400] }, { name: "Chennai Cntl", type: "station", group: "station", price: 200 }, { name: "Chance", type: "chance", price: 0 }, { name: "Bandra", type: "property", group: "darkblue", price: 350, housePrice: 200, rent: [35, 175, 500, 1100, 1300, 1500] }, { name: "Luxury Tax", type: "tax", price: 100 }, { name: "South Mumbai", type: "property", group: "darkblue", price: 400, housePrice: 200, rent: [50, 200, 600, 1400, 1700, 2000] }
+];
+const CARDS = [
+    { text: "Advance to GO (+₹200)", action: "move", target: 0 }, { text: "Advance to South Mumbai", action: "move", target: 39 }, { text: "Go Directly to Jail", action: "jail" }, { text: "Traffic Fine: Pay ₹50", action: "pay", amount: 50 }, { text: "Diwali Bonus: Collect ₹100", action: "collect", amount: 100 }, { text: "Get Out of Jail Free", action: "keep" }, { text: "Income Tax Refund: Collect ₹20", action: "collect", amount: 20 }, { text: "Go Back 3 Spaces", action: "back", amount: 3 }
+];
+const COLORS = { brown: '#8d6e63', lightblue: '#81d4fa', pink: '#f48fb1', orange: '#ffcc80', red: '#ef5350', yellow: '#fff59d', green: '#66bb6a', darkblue: '#5c6bc0', station: '#546e7a', utility: '#bdbdbd' };
+const PLAYER_COLORS = ['#ef5350', '#42a5f5', '#66bb6a', '#ffa726'];
+
+class BusinessIndia {
+    constructor() {
+        this.players = []; this.currentPlayerIdx = 0;
+        this.boardState = SPACES.map(() => ({ owner: null, houses: 0 }));
+        this.isProcessing = false; this.diceRotation = { x: 0, y: 0 };
+        this.timer = null; this.timerEnabled = true;
+        this.consecutiveDoubles = 0;
+        this.renderBoardLayout();
+    }
+
+    init(total, bots, names, timerEnabled) {
+        this.timerEnabled = timerEnabled;
+        this.players = [];
+        for(let i=0; i<total; i++) {
+            this.players.push({
+                id: i, name: names[i] || (i < (total-bots) ? `Player ${i+1}` : `Bot ${i+1}`),
+                isBot: i >= (total-bots), color: PLAYER_COLORS[i], money: 1500,
+                position: 0, properties: [], inJail: false, jailTurns: 0, outOfJailCards: 0, isBankrupt: false
+            });
+        }
+        this.currentPlayerIdx = 0;
+        this.consecutiveDoubles = 0;
+        this.renderTokens(); this.updateUI();
+        this.log("Welcome to Business India!", "#1565c0");
+        this.saveGame();
+    }
+
+    /* --- HELPERS --- */
+    changeMoney(player, amount) {
+        player.money += amount;
+        const cards = document.getElementsByClassName('player-card');
+        if(cards[player.id]) {
+            const float = document.createElement('div'); float.className = 'float-text';
+            float.innerText = (amount >= 0 ? "+" : "") + "₹" + amount;
+            float.style.color = amount >= 0 ? "#2e7d32" : "#c62828";
+            // Random jitter to prevent perfect overlap on quick transactions
+            float.style.right = (10 + Math.random()*20) + "px";
+            cards[player.id].appendChild(float);
+            setTimeout(() => float.remove(), 1500);
+        }
+        if(amount <= -200) this.triggerShake(player.id);
+    }
+
+    triggerShake(playerId) {
+        const cards = document.querySelectorAll('.player-card');
+        if(cards[playerId]) {
+            cards[playerId].classList.add('shake-effect');
+            setTimeout(() => cards[playerId].classList.remove('shake-effect'), 500);
+        }
+    }
+    
+    /* --- TURN LOGIC --- */
+    humanRoll() { if(!this.isProcessing) { this.stopTimer(); this.startTurnLogic(); } }
+    
+    startTurn() {
+        const player = this.players[this.currentPlayerIdx];
+        if(player.isBankrupt) { this.endTurn(); return; }
+        
+        this.updateUI();
+        if(this.consecutiveDoubles === 0) this.log(`It's ${player.name}'s turn.`, "black");
+
+        if(!player.isBot && this.timerEnabled && !player.inJail) this.startTimer();
+        else if (player.isBot) { setTimeout(() => this.botTurn(), 800 + Math.random()*400); return; } // Random delay
+        
+        if(player.inJail && !player.isBot) this.stopTimer();
+    }
+
+    async botTurn() {
+        const p = this.players[this.currentPlayerIdx];
+        if(!p.inJail && p.money > 800) this.botAttemptBuild(p);
+        this.startTurnLogic();
+    }
+
+    botAttemptBuild(p) {
+        const groups = {};
+        p.properties.forEach(idx => {
+            const g = SPACES[idx].group;
+            if(g && SPACES[idx].type==='property') { if(!groups[g]) groups[g]=[]; groups[g].push(idx); }
+        });
+        
+        Object.keys(groups).forEach(g => {
+            const limit = ['brown','darkblue'].includes(g) ? 2 : 3;
+            if(groups[g].length === limit) {
+                const props = groups[g].map(i => ({idx: i, h: this.boardState[i].houses, price: SPACES[i].housePrice}));
+                props.sort((a,b) => a.h - b.h);
+                const target = props[0];
+                if(target.h < 5 && p.money > target.price + 300) {
+                     this.changeMoney(p, -target.price);
+                     this.boardState[target.idx].houses++;
+                     this.updateSpaceVisuals(target.idx, p.color, this.boardState[target.idx].houses);
+                     this.log(`${p.name} built house on ${SPACES[target.idx].name}`, "purple");
+                }
+            }
+        });
+    }
+
+    async startTurnLogic() {
+        this.isProcessing = true;
+        const player = this.players[this.currentPlayerIdx];
+        if(player.inJail) {
+            if(player.isBot) {
+                if(player.outOfJailCards > 0) await this.handleJailDecision(player, 'card');
+                else if(player.money > 1000) await this.handleJailDecision(player, 'pay');
+                else await this.handleJailDecision(player, 'roll');
+            }
+        } else await this.rollAndMove(player);
+    }
+
+    /* --- JAIL --- */
+    humanJailAction(action) { if(!this.isProcessing) this.handleJailDecision(this.players[this.currentPlayerIdx], action); }
+
+    async handleJailDecision(player, action) {
+        this.isProcessing = true;
+        if(action === 'pay') {
+            this.changeMoney(player, -50); player.inJail = false;
+            this.log(`${player.name} paid bail.`, "#c62828");
+            await this.rollAndMove(player);
+        } else if (action === 'card') {
+            player.outOfJailCards--; player.inJail = false;
+            this.log(`${player.name} used Card.`, "#2e7d32");
+            await this.rollAndMove(player);
+        } else if (action === 'roll') {
+            const d1 = Math.ceil(Math.random()*6); const d2 = Math.ceil(Math.random()*6);
+            await this.animateDice(d1, d2);
+            if(d1 === d2) {
+                player.inJail = false; this.log("Doubles! Released.", "#2e7d32");
+                await this.movePlayer(player, d1+d2);
+            } else {
+                player.jailTurns++; this.log("Stuck in Jail.", "gray"); this.triggerShake(player.id);
+                if(player.jailTurns >= 3) {
+                    this.changeMoney(player, -50); player.inJail = false;
+                    this.log("Paid ₹50 forced bail.", "#c62828");
+                    await this.movePlayer(player, d1+d2);
+                } else this.endTurn();
+            }
+        }
+    }
+
+    /* --- MOVEMENT --- */
+    async rollAndMove(player) {
+        const d1 = Math.ceil(Math.random()*6); const d2 = Math.ceil(Math.random()*6);
+        await this.animateDice(d1, d2);
+        
+        const isDoubles = (d1 === d2);
+        if(isDoubles) {
+            this.consecutiveDoubles++;
+            this.log(`${player.name} rolled Doubles! (${d1}+${d2})`, "#0277bd");
+        } else {
+            this.consecutiveDoubles = 0;
+            this.log(`${player.name} rolled ${d1+d2}`, "black");
+        }
+
+        if(this.consecutiveDoubles === 3) {
+            this.log("3 Doubles! Go to Jail.", "#c62828");
+            this.consecutiveDoubles = 0;
+            await this.goToJail(player);
+        } else {
+            await this.movePlayer(player, d1+d2, isDoubles);
+        }
+    }
+
+    async movePlayer(player, steps, isDoubles=false) {
+        for(let i=0; i<steps; i++) {
+            player.position = (player.position + 1) % 40;
+            if(player.position === 0) { this.changeMoney(player, 200); this.log("Passed GO! +₹200", "#2e7d32"); this.updateUI(); }
+            this.renderTokens();
+            await new Promise(r => setTimeout(r, 150));
+        }
+        if(player.position === 30) { 
+            await this.goToJail(player);
+        } else {
+            await this.handleSpace(player, SPACES[player.position], isDoubles);
+        }
+    }
+
+    async goToJail(player) {
+        this.log("Go to Jail!", "#c62828"); this.triggerShake(player.id);
+        await new Promise(r => setTimeout(r, 500));
+        player.position = 10; player.inJail = true; 
+        this.renderTokens(); this.endTurn(false);
+    }
+
+    async handleSpace(player, space, isDoubles) {
+        const prop = this.boardState[player.position];
+        if(space.type === 'chance' || space.type === 'chest') {
+            await this.drawCard(player);
+        }
+        else if((space.type === 'property' || space.type === 'station' || space.type === 'utility') && prop.owner === null) {
+            await this.offerProperty(player, space);
+        }
+        else if(prop.owner !== null && prop.owner !== player.id) {
+            const owner = this.players[prop.owner];
+            let rent = 0;
+            if(space.type === 'property') rent = space.rent[prop.houses];
+            else if(space.type === 'station') {
+                const count = owner.properties.filter(id => SPACES[id].type === 'station').length;
+                rent = 25 * Math.pow(2, count-1);
+            } else rent = 100;
+            
+            this.changeMoney(player, -rent); this.changeMoney(owner, rent);
+            this.log(`Paid ₹${rent} rent to ${owner.name}`, "#d32f2f");
+        }
+        else if(space.type === 'tax') {
+            this.changeMoney(player, -space.price);
+            this.log(`Paid ${space.name}: ₹${space.price}`, "#d32f2f");
+        }
+        
+        this.checkBankruptcy(player);
+        if(!this.isProcessing) this.endTurn(isDoubles && !player.isBankrupt && !player.inJail);
+    }
+
+    /* --- BUY / AUCTION --- */
+    async offerProperty(player, space) {
+        const area = document.getElementById('action-area');
+        area.innerHTML = '';
+        if(player.isBot) {
+            if(player.money > space.price + 150) this.buy(player, space);
+            else { this.log(`${player.name} passed. Auction!`, "gray"); await this.startAuction(space); }
+            return;
+        } else {
+            this.isProcessing = true;
+            const canAfford = player.money >= space.price;
+            
+            const btnBuy = document.createElement('button'); 
+            btnBuy.innerHTML = `Buy ₹${space.price}`; 
+            btnBuy.style.background = canAfford ? "#43a047" : "#cfd8dc";
+            if(!canAfford) btnBuy.disabled = true;
+            btnBuy.onclick = () => { this.buy(player, space); };
+
+            const btnPass = document.createElement('button'); 
+            btnPass.innerText = "Auction"; 
+            btnPass.style.background = "#e53935";
+            btnPass.onclick = async () => { area.innerHTML=''; await this.startAuction(space); };
+
+            area.appendChild(btnBuy); area.appendChild(btnPass);
+            return new Promise(() => {}); 
+        }
+    }
+
+    buy(player, space) {
+        this.changeMoney(player, -space.price);
+        player.properties.push(player.position);
+        this.boardState[player.position].owner = player.id;
+        this.log(`${player.name} bought ${space.name}`, "#2e7d32");
+        this.updateSpaceVisuals(player.position, player.color, 0);
+        this.updateUI();
+        document.getElementById('action-area').innerHTML = '';
+        this.checkBankruptcy(player);
+        this.endTurn(this.consecutiveDoubles > 0);
+    }
+
+    startAuction(space) {
+        return new Promise(resolve => {
+            const modal = document.getElementById('auction-modal');
+            const controls = document.getElementById('auction-controls');
+            const currBidEl = document.getElementById('current-bid');
+            const highBidderEl = document.getElementById('high-bidder');
+            
+            let currentBid = 10;
+            let highBidder = null;
+            let passed = [];
+            
+            const updateUI = () => {
+                currBidEl.innerText = `₹${currentBid}`;
+                highBidderEl.innerText = highBidder ? highBidder.name : "None";
+                controls.innerHTML = '';
+                
+                const activePlayers = this.players.filter(p=>!p.isBankrupt);
+
+                if(passed.length >= activePlayers.length || (highBidder && passed.length >= activePlayers.length - 1)) {
+                     if(highBidder) {
+                         this.changeMoney(highBidder, -currentBid);
+                         highBidder.properties.push(this.players[this.currentPlayerIdx].position);
+                         this.boardState[this.players[this.currentPlayerIdx].position].owner = highBidder.id;
+                         this.log(`${highBidder.name} won auction (₹${currentBid})`, "#2e7d32");
+                         this.updateSpaceVisuals(this.players[this.currentPlayerIdx].position, highBidder.color, 0);
+                         this.updateUI();
+                     } else this.log("Auction cancelled.", "gray");
+                     
+                     modal.classList.remove('show');
+                     this.endTurn(this.consecutiveDoubles > 0);
+                     resolve();
+                     return;
+                }
+
+                this.players.forEach(p => {
+                    if(p.isBankrupt || passed.includes(p.id) || (highBidder === p && passed.length < activePlayers.length-1)) return;
+                    
+                    const btn = document.createElement('button');
+                    btn.innerText = `${p.name} (+10)`;
+                    btn.style.background = p.color;
+                    
+                    if(p.isBot) {
+                        setTimeout(() => {
+                            if(!modal.classList.contains('show')) return;
+                            if(passed.includes(p.id) || highBidder === p) return;
+                            
+                            // Smarter Bot Auction Logic
+                            let val = space.price;
+                            // Willing to pay double if it completes a set
+                            if(space.group && p.properties.some(x => SPACES[x].group === space.group)) val *= 2.5; 
+                            
+                            if(p.money > currentBid + 50 && currentBid < val) bid(p);
+                            else if(!passed.includes(p.id)) { passed.push(p.id); updateUI(); }
+                        }, 500 + Math.random()*1000);
+                    }
+                    btn.onclick = () => bid(p);
+                    controls.appendChild(btn);
+                });
+                
+                const humans = activePlayers.filter(p => !p.isBot && !passed.includes(p.id) && highBidder !== p);
+                if(humans.length > 0) {
+                     const passBtn = document.createElement('button');
+                     passBtn.innerText = "Pass"; passBtn.style.background = "#455a64";
+                     passBtn.onclick = () => { humans.forEach(h => passed.push(h.id)); updateUI(); };
+                     controls.appendChild(passBtn);
+                }
+            };
+            
+            const bid = (p) => { if(p.money < currentBid + 10) return; currentBid += 10; highBidder = p; updateUI(); }
+            document.getElementById('auction-property').innerText = space.name;
+            modal.classList.add('show');
+            updateUI();
+        });
+    }
+
+    /* --- END TURN --- */
+    endTurn(goAgain = false) {
+        this.isProcessing = false;
+        
+        const active = this.players.filter(p => !p.isBankrupt);
+        if(active.length === 1) {
+             document.getElementById('winner-name').innerText = active[0].name + " Wins!";
+             document.getElementById('winner-modal').classList.add('show');
+             this.log(`🏆 ${active[0].name} WINS!`, "gold");
+             return;
+        }
+
+        this.saveGame();
+        
+        if(goAgain) {
+            this.log(`${this.players[this.currentPlayerIdx].name} rolls again!`, "#0277bd");
+            setTimeout(() => this.startTurn(), 1000);
+        } else {
+            this.consecutiveDoubles = 0;
+            let attempts = 0;
+            do { this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length; attempts++; } 
+            while(this.players[this.currentPlayerIdx].isBankrupt && attempts < 5);
+            setTimeout(() => this.startTurn(), 1000);
+        }
+    }
+
+    checkBankruptcy(p) {
+        if(p.money < 0 && !p.isBankrupt) {
+            p.isBankrupt = true;
+            this.log(`${p.name} WENT BANKRUPT!`, "#c62828");
+            this.boardState.forEach((s, idx) => { 
+                if(s.owner === p.id) { 
+                    s.owner = null; s.houses = 0; 
+                    this.updateSpaceVisuals(idx, 'transparent', 0);
+                } 
+            });
+            this.renderTokens();
+            this.updateUI();
+        }
+    }
+
+    /* --- CARDS --- */
+    async drawCard(player) {
+        const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+        const modal = document.getElementById('card-modal');
+        document.getElementById('card-desc').innerText = card.text;
+        modal.classList.add('show');
+        
+        const apply = async () => {
+             modal.classList.remove('show');
+             if(card.action === 'collect') this.changeMoney(player, card.amount);
+             else if(card.action === 'pay') this.changeMoney(player, -card.amount);
+             else if(card.action === 'move') { player.position = card.target; this.renderTokens(); }
+             else if(card.action === 'jail') await this.goToJail(player);
+             else if(card.action === 'keep') player.outOfJailCards++;
+             else if(card.action === 'back') { player.position -= card.amount; this.renderTokens(); }
+             if(!['move','jail','back'].includes(card.action)) this.endTurn(this.consecutiveDoubles > 0);
+        }
+
+        if(player.isBot) { await new Promise(r => setTimeout(r, 1500)); await apply(); }
+        else { await new Promise(r => { document.getElementById('card-btn').onclick = () => { r(); apply(); } }); }
+    }
+
+    /* --- VISUALS --- */
+    renderBoardLayout() {
+        const b = document.getElementById('board'); b.innerHTML = '';
+        b.innerHTML += `<div class="center-space"><h2 style="color:#b0bec5; font-size:3vmin; letter-spacing:2px; margin-bottom:2vmin;">BUSINESS INDIA</h2><div class="dice-container"><div id="die1" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div><div id="die2" class="die"><div class="face">1</div><div class="face">2</div><div class="face">3</div><div class="face">4</div><div class="face">5</div><div class="face">6</div></div></div><div id="action-area" class="action-btn-group" style="min-height:5vmin; margin-top:2vmin;"></div></div>`;
+        const map = (i) => { if(i<=10)return{r:11,c:11-i}; if(i<=20)return{r:11-(i-10),c:1}; if(i<=30)return{r:1,c:1+(i-20)}; return{r:1+(i-30),c:11}; };
+        SPACES.forEach((s, i) => {
+            const e = document.createElement('div'); e.className = 'space'; e.id = `space-${i}`;
+            const p = map(i); e.style.gridRow = p.r; e.style.gridColumn = p.c;
+            e.onmouseenter = (ev) => this.showDeed(i, ev); e.onmouseleave = () => document.getElementById('deed-card').style.display='none';
+            if(s.group) e.innerHTML += `<div class="color-bar" style="background:${COLORS[s.group]}"></div>`;
+            e.innerHTML += `<div class="space-name">${i===0?'⬅ GO':s.name}</div>${s.price?`<div class="space-price">₹${s.price}</div>`:''}`;
+            b.appendChild(e);
+        });
+    }
+
+    renderTokens() {
+        document.querySelectorAll('.token').forEach(t => t.remove());
+        const occupants = {}; 
+        this.players.forEach(p => { if(!p.isBankrupt) { if(!occupants[p.position]) occupants[p.position]=[]; occupants[p.position].push(p); } });
+
+        Object.keys(occupants).forEach(pos => {
+            const list = occupants[pos];
+            const el = document.getElementById(`space-${pos}`);
+            list.forEach((p, i) => {
+                const t = document.createElement('div'); t.className = 'token'; t.style.backgroundColor = p.color;
+                const offsetX = (i % 2) * 20 + 20;
+                const offsetY = Math.floor(i / 2) * 20 + 50;
+                t.style.left = `${offsetX}%`; t.style.top = `${offsetY}%`;
+                el.appendChild(t);
+            });
+        });
+    }
+    
+    updateSpaceVisuals(idx, col, h) {
+        const el = document.getElementById(`space-${idx}`); if(!el) return;
+        el.style.border = col==='transparent'?'0.5vmin solid #455a64':`0.5vmin solid ${col}`;
+        const b = el.querySelector('.color-bar'); if(b) { b.innerHTML=''; for(let k=0;k<h;k++) b.innerHTML+='<div class="house-icon"></div>'; if(h===5) b.innerHTML='<div class="hotel-icon"></div>'; }
+    }
+    animateDice(d1, d2) { return new Promise(r => { this.diceRotation.x += 720; this.diceRotation.y += 720; const m = {1:[0,0],2:[0,180],3:[0,-90],4:[0,90],5:[-90,0],6:[90,0]}; document.getElementById('die1').style.transform = `rotateX(${this.diceRotation.x+m[d1][0]}deg) rotateY(${this.diceRotation.y+m[d1][1]}deg)`; document.getElementById('die2').style.transform = `rotateX(${this.diceRotation.x+m[d2][0]}deg) rotateY(${this.diceRotation.y+m[d2][1]}deg)`; setTimeout(r, 1200); }); }
+    updateUI() {
+        const l = document.getElementById('players-list'); l.innerHTML = '';
+        this.players.forEach((p, i) => {
+            const d = document.createElement('div'); d.className = `player-card ${i===this.currentPlayerIdx ? 'active-turn' : ''} ${p.isBankrupt ? 'eliminated' : ''}`; d.style.borderLeftColor = p.color;
+            d.innerHTML = `<div><b>${p.name}</b></div><div>💰 ₹${p.money}</div>${p.inJail?'<div style="color:#d32f2f; font-weight:bold;">IN JAIL</div>':''}`; l.appendChild(d);
+        });
+        const p = this.players[this.currentPlayerIdx]; const myTurn = !p.isBot && !this.isProcessing && !p.isBankrupt;
+        document.getElementById('roll-btn').disabled = !myTurn || p.inJail;
+        document.getElementById('jail-controls').style.display = (p.inJail) ? 'flex' : 'none';
+        document.getElementById('manage-btn').disabled = !myTurn; document.getElementById('trade-btn').disabled = !myTurn;
+        document.getElementById('jail-card-btn').disabled = (p.outOfJailCards === 0);
+    }
+    showDeed(idx, e) {
+        const s = SPACES[idx]; if(!s.group && s.type !== 'station' && s.type !== 'utility') return;
+        const c = document.getElementById('deed-card'); c.style.display = 'block'; c.style.left = (e.pageX+15)+'px'; c.style.top = (e.pageY+15)+'px';
+        document.getElementById('deed-header').style.backgroundColor = COLORS[s.group]||'black'; document.getElementById('deed-header').innerText = s.name;
+        document.getElementById('deed-body').innerHTML = `Price: ₹${s.price}<br>Rent: ₹${Array.isArray(s.rent)?s.rent[0]:100}`;
+    }
+    startTimer() { this.stopTimer(); const bar = document.getElementById('timer-bar'); document.getElementById('timer-bar-container').style.display = 'block'; bar.style.width = '100%'; let t = 30; this.timer = setInterval(() => { t--; bar.style.width = (t/30 * 100) + '%'; if(t <= 0) { this.stopTimer(); this.startTurnLogic(); } }, 1000); }
+    stopTimer() { if(this.timer) clearInterval(this.timer); document.getElementById('timer-bar-container').style.display = 'none'; }
+    resumeTimerIfHuman() { if(!this.players[this.currentPlayerIdx].isBot && !this.isProcessing) this.startTimer(); }
+    saveGame() { if(!this.isProcessing) localStorage.setItem('bizIndia_v3_5', JSON.stringify({p:this.players,c:this.currentPlayerIdx,b:this.boardState})); }
+    loadGame() { const d = JSON.parse(localStorage.getItem('bizIndia_v3_5')); if(!d) return; this.players = d.p; this.currentPlayerIdx = d.c; this.boardState = d.b; this.renderTokens(); this.boardState.forEach((s,i)=>this.updateSpaceVisuals(i,s.owner!==null?this.players[s.owner].color:'transparent',s.houses)); this.updateUI(); document.getElementById('setup-modal').classList.remove('show'); this.startTurn(); }
+    clearSave() { localStorage.removeItem('bizIndia_v3_5'); location.reload(); }
+    log(msg, color="black") { const box = document.getElementById('log-box'); const d = document.createElement('div'); d.className = 'log-entry'; d.style.color = color; d.innerText = `> ${msg}`; box.prepend(d); }
+    
+    openTradeWindow() { this.stopTimer(); document.getElementById('trade-modal').classList.add('show'); this.updateTradePartnerSelect(); }
+    updateTradePartnerSelect() { const s = document.getElementById('trade-partner-select'); s.innerHTML=''; this.players.forEach(p=>{if(p.id!==this.currentPlayerIdx&&!p.isBankrupt){const o=document.createElement('option');o.value=p.id;o.innerText=p.name;s.appendChild(o)}}); this.updateTradeUI(); }
+    updateTradeUI() {
+        const tid=parseInt(document.getElementById('trade-partner-select').value); const me=this.players[this.currentPlayerIdx]; const target=this.players[tid];
+        const ren=(p,cid,pf)=>{const c=document.getElementById(cid);c.innerHTML='';p.properties.forEach(idx=>{const s=SPACES[idx];c.innerHTML+=`<label style="display:block; margin:2px;"><input type="checkbox" class="${pf}-check" value="${idx}"> <span style="color:${COLORS[s.group]||'#333'}">■</span> ${s.name} (${s.price})</label>`})};
+        ren(me,'my-props-list','my'); ren(target,'their-props-list','their');
+    }
+    proposeTrade() {
+        const tid=parseInt(document.getElementById('trade-partner-select').value); const me=this.players[this.currentPlayerIdx]; const target=this.players[tid];
+        const myP=Array.from(document.querySelectorAll('.my-check:checked')).map(c=>parseInt(c.value)); const thP=Array.from(document.querySelectorAll('.their-check:checked')).map(c=>parseInt(c.value));
+        const myC=parseInt(document.getElementById('my-cash-offer').value)||0; const thC=parseInt(document.getElementById('their-cash-offer').value)||0;
+        if(myC>me.money||thC>target.money){alert("Funds too low");return;}
+        if(target.isBot || confirm("Accept Trade?")) {
+            this.changeMoney(me,thC-myC); this.changeMoney(target,myC-thC);
+            myP.forEach(i=>{me.properties=me.properties.filter(x=>x!==i);target.properties.push(i);this.boardState[i].owner=target.id;this.updateSpaceVisuals(i,target.color,this.boardState[i].houses)});
+            thP.forEach(i=>{target.properties=target.properties.filter(x=>x!==i);me.properties.push(i);this.boardState[i].owner=me.id;this.updateSpaceVisuals(i,me.color,this.boardState[i].houses)});
+            this.log("Trade Complete", "green"); document.getElementById('trade-modal').classList.remove('show'); this.updateUI(); this.resumeTimerIfHuman();
+        }
+    }
+    openPropertyManager() {
+        this.stopTimer(); const modal=document.getElementById('prop-modal'); const list=document.getElementById('prop-list'); list.innerHTML='';
+        const p=this.players[this.currentPlayerIdx]; const g={};
+        p.properties.forEach(i=>{const s=SPACES[i];if(s.type==='property'){if(!g[s.group])g[s.group]=[];g[s.group].push(i)}});
+        Object.keys(g).forEach(k=>{
+            const canBuild=g[k].length===(['brown','darkblue'].includes(k)?2:3);
+            g[k].forEach(i=>{
+                const s=SPACES[i]; const row=document.createElement('div'); row.style="display:flex; justify-content:space-between; margin-bottom:5px; padding:5px; background:#f5f5f5; border-radius:4px;";
+                row.innerHTML=`<span><span style="color:${COLORS[k]}">■</span> ${s.name}</span>`;
+                if(canBuild && this.boardState[i].houses<5) {
+                    const btn=document.createElement('button'); btn.innerText=`Build (${s.housePrice})`; btn.style.fontSize="10px"; btn.style.padding="4px";
+                    btn.onclick=()=>{if(p.money>=s.housePrice){this.changeMoney(p,-s.housePrice);this.boardState[i].houses++;this.updateSpaceVisuals(i,p.color,this.boardState[i].houses);this.openPropertyManager();}};
+                    row.appendChild(btn);
+                } else if(!canBuild) row.innerHTML+=`<small style="color:#aaa">Set Incomplete</small>`;
+                list.appendChild(row);
+            });
+        });
+        if(list.innerHTML==='')list.innerHTML="No Properties"; modal.classList.add('show');
+    }
+}
+
+const game = new BusinessIndia();
+window.onload = () => { if(localStorage.getItem('bizIndia_v3_5')) document.getElementById('resume-container').style.display='block'; updateNameInputs(); }
+function updateNameInputs() { const t=parseInt(document.getElementById('total-players').value); const c=document.getElementById('name-inputs-container'); c.innerHTML=''; for(let i=0;i<t;i++) { const inp=document.createElement('input'); inp.className='name-input'; inp.placeholder=`Player ${i+1} Name`; inp.id=`pname-${i}`; c.appendChild(inp); } }
+function startGame() { const t=parseInt(document.getElementById('total-players').value); const b=parseInt(document.getElementById('ai-count').value); const tim=document.getElementById('timer-toggle').checked; const ns=[]; for(let i=0;i<t;i++) ns.push(document.getElementById(`pname-${i}`).value); if(b>=t){alert("Need 1 Human");return;} game.clearSave(); game.init(t,b,ns,tim); document.getElementById('setup-modal').classList.remove('show'); game.startTurn(); }
+</script>
+</body>
+</html>
