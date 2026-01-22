@@ -3,72 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Business India: Ultimate v4.2 (Anti-Freeze Core)</title>
+    <title>Business India: Ultimate v4.3 (Mobile Ready)</title>
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.95);
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
             --board-bg: #e8f5e9;
             --brown: #8d6e63; --lightblue: #81d4fa; --pink: #f48fb1; --orange: #ffcc80;
             --red: #ef5350; --yellow: #fff59d; --green: #66bb6a; --darkblue: #5c6bc0;
         }
 
         body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
             background: radial-gradient(circle at center, #1a237e 0%, #000000 100%);
             margin: 0; display: flex; justify-content: center; align-items: center; 
             height: 100vh; width: 100vw; color: #333; overflow: hidden; user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
+        /* --- MAIN CONTAINER (Responsive) --- */
         #game-container { 
             display: flex; flex-direction: row; gap: 2vmin; 
             background: var(--glass); padding: 2vmin; border-radius: 2vmin; 
-            box-shadow: var(--shadow); height: 96vh; width: 96vw; 
-            box-sizing: border-box; backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: var(--shadow); height: 95vh; width: 95vw; 
+            box-sizing: border-box; backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
         }
 
-        @media (max-width: 900px) {
-            #game-container { flex-direction: column; align-items: center; }
-            #controls { width: 100% !important; height: 35% !important; flex-direction: row !important; flex-wrap: wrap; }
-            #log-box { display: none; }
-            #board { width: 90vmin !important; height: 90vmin !important; }
+        /* --- MOBILE LAYOUT --- */
+        @media (max-width: 900px) or (orientation: portrait) {
+            #game-container { 
+                flex-direction: column; 
+                height: 100vh; width: 100vw; 
+                border-radius: 0; padding: 1vmin;
+            }
+            #board { 
+                width: 96vw !important; height: 96vw !important; 
+                margin: 0 auto; flex-shrink: 0;
+            }
+            #controls { 
+                width: 100% !important; 
+                height: auto !important; 
+                flex: 1; 
+                overflow-y: auto; /* Allow scrolling controls if screen small */
+            }
+            .player-card { font-size: 3.5vmin !important; padding: 2vmin !important; }
+            button { font-size: 3vmin !important; padding: 3vmin !important; }
+            #status-bar { font-size: 3vmin !important; }
+            .modal-content { width: 95% !important; font-size: 3vmin !important; }
+            .name-input { font-size: 3vmin !important; padding: 2vmin !important; }
         }
-
-        /* --- UI COMPONENTS --- */
-        #status-bar {
-            background: #263238; color: #fff; padding: 1vmin; margin-bottom: 1vmin;
-            border-radius: 0.5vmin; font-size: 1.4vmin; font-weight: bold; text-align: center;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); letter-spacing: 0.5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        #toast-container { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 1vmin; z-index: 6000; pointer-events: none; }
-        .toast { background: rgba(0,0,0,0.9); color: white; padding: 1.5vmin 3vmin; border-radius: 5vmin; font-size: 1.8vmin; font-weight: 500; animation: fadeDown 0.4s ease-out; border-left: 0.8vmin solid #4caf50; }
-        .toast.error { border-left-color: #f44336; }
-        @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- BOARD --- */
         #board { 
             display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr); 
-            gap: 2px; background-color: #37474f; border: 0.5vmin solid #37474f; 
+            gap: 1px; background-color: #37474f; border: 0.5vmin solid #37474f; 
             width: 88vh; height: 88vh; flex-shrink: 0; border-radius: 1vmin;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
         }
 
         .space { 
             background-color: var(--board-bg); font-size: 0.9vmin; text-align: center; 
             display: flex; flex-direction: column; justify-content: space-between; 
-            position: relative; overflow: hidden; cursor: help; transition: filter 0.2s;
+            position: relative; overflow: hidden; cursor: pointer; transition: filter 0.2s;
         }
-        .space:hover { filter: brightness(0.92); }
+        .space:active { filter: brightness(0.85); }
+
+        /* Responsive Text on Board */
+        @media (max-width: 900px) {
+            .space-name { font-size: 1.8vmin !important; display: none; } /* Hide names on tiny screens to save space? Optional */
+            .space-price { font-size: 1.8vmin !important; }
+            .space { font-size: 2vmin; }
+        }
 
         .color-bar { height: 22%; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 1px; }
-        .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1.1; font-size: 0.8vmin; color: #263238; }
+        .space-name { padding: 0.5vmin; font-weight: 700; line-height: 1; font-size: 0.8vmin; color: #263238; }
         .space-price { padding-bottom: 0.5vmin; font-weight: 600; font-size: 0.8vmin; color: #546e7a; }
         
-        .house-icon { width: 0.8vmin; height: 0.8vmin; background: #2e7d32; border: 1px solid white; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        .hotel-icon { width: 1.2vmin; height: 1.2vmin; background: #c62828; border: 1px solid white; display: inline-block; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .house-icon { width: 20%; height: 60%; background: #2e7d32; border: 1px solid white; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .hotel-icon { width: 40%; height: 60%; background: #c62828; border: 1px solid white; display: inline-block; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         .center-space { 
             grid-column: 2 / span 9; grid-row: 2 / span 9; 
@@ -78,20 +94,27 @@
         }
 
         /* --- CONTROLS --- */
-        #controls { width: 25vw; display: flex; flex-direction: column; gap: 1vmin; height: 88vh; }
+        #controls { 
+            width: 25vw; display: flex; flex-direction: column; gap: 1vmin; height: 88vh; 
+            min-height: 0; /* Important for flex scrolling */
+        }
         
+        #players-list { 
+            flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1vmin; 
+            min-height: 10vh;
+        }
+
         .player-card { 
             background: white; padding: 1.5vmin; border-radius: 1vmin; 
-            border-left: 1vmin solid gray; font-size: 1.5vmin; transition: all 0.3s; 
-            position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 1.5vmin solid gray; font-size: 1.5vmin; transition: transform 0.2s; 
+            position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex; justify-content: space-between; align-items: center;
         }
         
         .active-turn { 
-            border-left-width: 1.5vmin; background: #e3f2fd; 
-            transform: scale(1.03) translateX(1vmin); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            z-index: 10; border-right: 2px solid #2196f3;
+            background: #e3f2fd; transform: scale(1.02); 
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3); 
+            border-right: 2px solid #2196f3;
         }
         .eliminated { opacity: 0.6; filter: grayscale(100%); text-decoration: line-through; }
 
@@ -99,42 +122,51 @@
             padding: 1.5vmin; cursor: pointer; background: #37474f; color: white; border: none; 
             border-radius: 0.8vmin; font-weight: 700; transition: 0.2s; font-size: 1.4vmin; 
             text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            touch-action: manipulation;
         }
-        button:hover { background: #455a64; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        button:active { transform: translateY(0); }
+        button:active { transform: scale(0.98); }
         button:disabled { background: #cfd8dc; color: #90a4ae; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        .action-btn-group { display: flex; gap: 1vmin; margin-top: 1vmin; justify-content: center; width: 100%; }
+        .action-btn-group { display: flex; gap: 1vmin; margin-top: 1vmin; width: 100%; }
         .action-btn-group button { flex: 1; }
 
         #log-box { 
-            flex-grow: 1; background: #ffffff; padding: 1vmin; border-radius: 1vmin; 
+            background: #ffffff; padding: 1vmin; border-radius: 1vmin; 
             overflow-y: auto; font-size: 1.2vmin; font-family: 'Consolas', monospace; 
-            border: 1px solid #e0e0e0; min-height: 10vmin; display: flex; flex-direction: column-reverse; 
+            border: 1px solid #e0e0e0; height: 12vh; display: flex; flex-direction: column-reverse; 
+            flex-shrink: 0;
         }
         .log-entry { margin-bottom: 4px; border-bottom: 1px solid #f5f5f5; padding-bottom: 2px; }
 
+        /* --- UI COMPONENTS --- */
+        #status-bar {
+            background: #263238; color: #fff; padding: 1.5vmin; margin-bottom: 0.5vmin;
+            border-radius: 0.5vmin; font-size: 1.5vmin; font-weight: bold; text-align: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); letter-spacing: 0.5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        #toast-container { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 1vmin; z-index: 6000; pointer-events: none; width: 80%; align-items: center; }
+        .toast { background: rgba(0,0,0,0.9); color: white; padding: 2vmin 4vmin; border-radius: 5vmin; font-size: 2vmin; font-weight: 500; animation: fadeDown 0.4s ease-out; border-left: 1vmin solid #4caf50; backdrop-filter: blur(4px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .toast.error { border-left-color: #f44336; }
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
         /* --- TOKENS --- */
         .token { 
-            width: 2vmin; height: 2vmin; border-radius: 50%; border: 0.3vmin solid white; 
-            position: absolute; box-shadow: 0 0.5vmin 1vmin rgba(0,0,0,0.5); z-index: 100; 
+            width: 20%; height: 20%; border-radius: 50%; border: 2px solid white; 
+            position: absolute; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 100; 
             transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
         }
 
         /* --- ANIMATIONS --- */
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-5vmin) scale(1.2); opacity: 0; } }
-        .float-text { position: absolute; right: 10px; top: -10px; font-weight: 800; font-size: 2.5vmin; pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 200; text-shadow: 0 2px 4px rgba(255,255,255,0.8); }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-50px) scale(1.2); opacity: 0; } }
+        .float-text { position: absolute; right: 10px; top: -10px; font-weight: 800; font-size: 3vmin; pointer-events: none; animation: floatUp 1.5s ease-out forwards; z-index: 200; text-shadow: 0 2px 4px rgba(255,255,255,0.8); }
         
         .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; transform-origin: center; }
-        @keyframes shake { 
-            10%, 90% { transform: translate3d(-2px, 0, 0); } 
-            20%, 80% { transform: translate3d(4px, 0, 0); } 
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 
-            40%, 60% { transform: translate3d(6px, 0, 0); } 
-        }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
 
         /* --- MODALS --- */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; backdrop-filter: blur(8px); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; backdrop-filter: blur(8px); }
         .modal.show { visibility: visible; opacity: 1; }
         .modal-content { background: white; padding: 4vmin; border-radius: 2vmin; text-align: center; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; font-size: 1.6vmin; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         
@@ -146,25 +178,31 @@
         .face:nth-child(2) { transform: rotateY(180deg) translateZ(4vmin); } .face:nth-child(5) { transform: rotateX(90deg) translateZ(4vmin); }
         .face:nth-child(3) { transform: rotateY(90deg) translateZ(4vmin); } .face:nth-child(4) { transform: rotateY(-90deg) translateZ(4vmin); }
 
-        #timer-bar-container { width: 100%; height: 0.8vmin; background: #e0e0e0; margin-bottom: 8px; display: none; border-radius: 1vmin; overflow: hidden; }
+        #timer-bar-container { width: 100%; height: 1vmin; background: #e0e0e0; margin-bottom: 8px; display: none; border-radius: 1vmin; overflow: hidden; }
         #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); transition: width 1s linear; }
         
         .name-input { width: 90%; padding: 1.2vmin; margin: 0.5vmin 0; border: 1px solid #bdbdbd; border-radius: 4px; font-family: inherit; font-size: 1.4vmin; }
         
         /* Pause Overlay */
-        #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         #pause-overlay h1 { font-size: 6vmin; margin-bottom: 2vmin; }
-        #pause-overlay button { background: #43a047; font-size: 2vmin; padding: 2vmin 4vmin; }
+        #pause-overlay button { background: #43a047; font-size: 3vmin; padding: 2vmin 6vmin; }
 
         /* --- DEED CARD HOVER --- */
         #deed-card {
             position: absolute; display: none; background: white; border: 1px solid #90a4ae;
             z-index: 5000; pointer-events: none; box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-            width: 24vmin; font-size: 1.2vmin; text-align: center; border-radius: 1vmin;
-            overflow: hidden;
+            width: 25vmin; font-size: 1.2vmin; text-align: center; border-radius: 1vmin;
+            overflow: hidden; min-width: 150px;
         }
         #deed-header { padding: 1.5vmin; font-weight: bold; color: white; font-size: 1.4vmin; text-transform: uppercase; }
         #deed-body { padding: 1.5vmin; color: #333; }
+        
+        /* Mobile adjust for deed */
+        @media (max-width: 900px) {
+            #deed-card { width: 50vw; font-size: 3vmin; min-width: 200px; }
+            #deed-header { font-size: 3.5vmin; }
+        }
     </style>
 </head>
 <body>
@@ -184,7 +222,7 @@
     <div id="setup-modal" class="modal show">
         <div class="modal-content">
             <h1 style="color:#263238; margin:0; font-size: 4vmin;">Business India</h1>
-            <p style="color:#78909c; letter-spacing: 1px; font-size: 1.5vmin; font-weight:bold;">ULTIMATE EDITION v4.2</p>
+            <p style="color:#78909c; letter-spacing: 1px; font-size: 1.5vmin; font-weight:bold;">ULTIMATE EDITION v4.3</p>
             <div id="resume-container" style="display:none; background:#e8f5e9; padding:10px; margin-bottom:15px; border-radius:4px; border:1px solid #c8e6c9;">
                 <p style="color:#2e7d32; font-weight:bold; margin:5px 0;">Resume previous game?</p>
                 <button onclick="game.loadGame()" style="background:#43a047; width:100%;">Resume</button>
@@ -233,7 +271,7 @@
             </div>
             <br>
             <div class="action-btn-group">
-                <button onclick="game.proposeTrade()" style="background:#43a047">Confirm Trade</button>
+                <button onclick="game.proposeTrade()" style="background:#43a047">Confirm</button>
                 <button onclick="document.getElementById('trade-modal').classList.remove('show'); game.resumeTimerIfHuman();" style="background:#e53935">Cancel</button>
             </div>
         </div>
@@ -290,7 +328,7 @@
             </div>
             <button onclick="game.togglePause()" style="background:#607d8b; margin-top:5px; font-size:1.2vmin; padding:1vmin;">II PAUSE GAME</button>
             <div id="log-box"></div>
-            <button onclick="game.clearSave()" style="background:transparent; color:#90a4ae; font-size:1vmin; margin-top:auto; font-weight:normal;">Reset Game Data</button>
+            <button onclick="game.clearSave()" style="background:transparent; color:#90a4ae; font-size:1vmin; margin-top:auto; font-weight:normal; border:1px solid #ccc;">Reset Data</button>
         </div>
     </div>
 
@@ -315,8 +353,10 @@ class BusinessIndia {
         this.isProcessing = false; this.diceRotation = { x: 0, y: 0 };
         this.timer = null; this.timerEnabled = true; this.timeLeft = 30;
         this.consecutiveDoubles = 0; this.isPaused = false;
-        // Watchdog prevents freezing
+        
+        // Critical: Watchdog for anti-freeze
         this.watchdogTimer = null;
+
         this.renderBoardLayout();
         document.addEventListener("visibilitychange", () => { if(document.hidden && !this.isPaused && document.getElementById('game-container').offsetParent) this.togglePause(true); });
     }
@@ -340,19 +380,7 @@ class BusinessIndia {
         this.saveGame();
     }
 
-    /* --- WATCHDOG (ANTI-FREEZE) --- */
-    startWatchdog() {
-        if(this.watchdogTimer) clearTimeout(this.watchdogTimer);
-        // If turn takes > 10s without input (and it's a bot), force skip
-        this.watchdogTimer = setTimeout(() => {
-            if(this.isProcessing && this.players[this.currentPlayerIdx].isBot) {
-                console.warn("Watchdog: Bot stuck. Forcing turn end.");
-                this.endTurn();
-            }
-        }, 8000);
-    }
-
-    /* --- CORE HELPERS --- */
+    /* --- HELPERS --- */
     setStatus(msg) { document.getElementById('status-bar').innerText = msg; }
     showToast(msg, type='info') {
         const c = document.getElementById('toast-container');
@@ -386,12 +414,23 @@ class BusinessIndia {
         if(cards[playerId]) { cards[playerId].classList.add('shake-effect'); setTimeout(() => cards[playerId].classList.remove('shake-effect'), 500); }
     }
 
+    /* --- WATCHDOG (FIX FOR FREEZING) --- */
+    startWatchdog() {
+        if(this.watchdogTimer) clearTimeout(this.watchdogTimer);
+        this.watchdogTimer = setTimeout(() => {
+            if(this.isProcessing && this.players[this.currentPlayerIdx].isBot && !this.isPaused) {
+                console.warn("Watchdog: Forced turn end.");
+                this.endTurn();
+            }
+        }, 10000); // Force next turn after 10s if stuck
+    }
+
     /* --- TURN LOOP --- */
     humanRoll() { if(!this.isProcessing && !this.isPaused) { this.stopTimer(); this.startTurnLogic(); } }
     
     startTurn() {
         if(this.isPaused) return;
-        this.isProcessing = false; // Reset lock at start of new turn
+        this.isProcessing = false; // Reset lock
         const player = this.players[this.currentPlayerIdx];
         if(player.isBankrupt) { this.endTurn(); return; }
         
@@ -402,7 +441,7 @@ class BusinessIndia {
         }
 
         if(player.isBot) {
-            this.startWatchdog();
+            this.startWatchdog(); // Monitor bot
             setTimeout(() => { if(!this.isPaused) this.botTurn(); }, 1000);
         } else {
             if(this.timerEnabled && !player.inJail) this.startTimer(30);
@@ -460,9 +499,9 @@ class BusinessIndia {
                     else await this.handleJailDecision(player, 'roll');
                 }
             } else await this.rollAndMove(player);
-        } catch (error) {
-            console.error("Turn Error:", error);
-            this.endTurn(); // Failsafe
+        } catch (e) {
+            console.error(e);
+            this.endTurn();
         }
     }
 
@@ -546,6 +585,7 @@ class BusinessIndia {
             await this.drawCard(player);
         }
         else if((space.type === 'property' || space.type === 'station' || space.type === 'utility') && prop.owner === null) {
+            // AWAIT USER INPUT
             await this.offerProperty(player, space);
         }
         else if(prop.owner !== null && prop.owner !== player.id) {
@@ -570,7 +610,8 @@ class BusinessIndia {
         }
         
         this.checkBankruptcy(player);
-        if(!this.isProcessing) return; // Should not happen with new logic, but safety check
+        // Ensure turn only ends if NOT waiting for user input
+        if(!this.isProcessing) return; 
         this.endTurn(isDoubles && !player.isBankrupt && !player.inJail);
     }
 
@@ -597,7 +638,7 @@ class BusinessIndia {
                     resolve();
                 }, 1000);
             } else {
-                this.setStatus("Do you want to buy this property?");
+                this.setStatus(`Waiting for ${player.name} to decide...`);
                 const canAfford = player.money >= space.price;
                 
                 const btnBuy = document.createElement('button'); 
@@ -841,7 +882,6 @@ class BusinessIndia {
     clearSave() { localStorage.removeItem('bizIndia_v4_2'); location.reload(); }
     log(msg, color="black") { const box = document.getElementById('log-box'); const d = document.createElement('div'); d.className = 'log-entry'; d.style.color = color; d.innerText = `> ${msg}`; box.prepend(d); }
     
-    // Trade Logic
     openTradeWindow() { this.stopTimer(); document.getElementById('trade-modal').classList.add('show'); this.updateTradePartnerSelect(); }
     updateTradePartnerSelect() { const s = document.getElementById('trade-partner-select'); s.innerHTML=''; this.players.forEach(p=>{if(p.id!==this.currentPlayerIdx&&!p.isBankrupt){const o=document.createElement('option');o.value=p.id;o.innerText=p.name;s.appendChild(o)}}); this.updateTradeUI(); }
     updateTradeUI() {
